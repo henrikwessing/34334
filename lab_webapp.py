@@ -85,14 +85,17 @@ def psef(grep):
 
 # use decorators to link the function to a url
 @app.route('/')
+@app.route('/index')
 def launcher():
 
     dockers = []
 
     for docker in NSROOT.ns:
         dockers.append(docker)
+    text = { 	'title': 'Lab øvelser i kursus 34334 Avancerede datanet og cybersikkerhed', 
+    		'text' : 'Denne side opretter øvelser som supplement til teorien i kursus 34334. De aktive knapper benyttes til at igangsætte en række simulerede netværk, som tager udgangspunkt i nogle Docker baserede øvelser.' }
 
-    return render_template('launcher.html', dockers=dockers)
+    return render_template('launcher.html', dockers=dockers, text=text)
 
 
 @app.route('/getnet')
