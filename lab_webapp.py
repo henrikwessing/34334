@@ -5,11 +5,11 @@ import sys
 import pwd
 import time
 import json
+import webbrowser
 
 
 #docker handling code
 import lab
-
 import argparse
 import netifaces
 import traceback
@@ -17,7 +17,7 @@ import subprocess
 
 from multiprocessing import Process
 
-parser = argparse.ArgumentParser(description='Wireshark for Security Professionals Lab')
+parser = argparse.ArgumentParser(description='Course 34334 Lab')
 parser.add_argument('--debug', action='store_true', default=False)
 args = parser.parse_args()
 
@@ -92,7 +92,7 @@ def launcher():
     for docker in NSROOT.ns:
         dockers.append(docker)
 
-    return render_template('launcher2.html', dockers=dockers)
+    return render_template('launcher.html', dockers=dockers)
 
 
 @app.route('/getnet')
@@ -214,22 +214,22 @@ if __name__ == '__main__':
         os.chdir(script_dir)
 
     #check to see if the w4sp-lab user exists
-    try:
-        temppwd = pwd.getpwnam('cybertek')
-        print("Password entry: "  + str(temppwd))
-    except KeyError:
-        print('[*] w4sp-lab user non-existant, creating')
-        try:
-            lab.utils.r('useradd -m cybertek -s /bin/bash -G sudo,wireshark -U')
-        except:
-            lab.utils.r('useradd -m cybertek -s /bin/bash -G sudo -U')  
-        print("[*] Please run: 'passwd cybertek' to set your password, then login as w4sp-lab and rerun lab")
-        sys.exit(-1)
+#    try:
+#        temppwd = pwd.getpwnam('cybertek')
+#        print("Password entry: "  + str(temppwd))
+#    except KeyError:
+#        print('[*] w4sp-lab user non-existant, creating')
+#        try:
+#            lab.utils.r('useradd -m cybertek -s /bin/bash -G sudo,wireshark -U')
+#        except:
+#            lab.utils.r('useradd -m cybertek -s /bin/bash -G sudo -U')  
+#        print("[*] Please run: 'passwd cybertek' to set your password, then login as w4sp-lab and rerun lab")
+ #       sys.exit(-1)
 
     #check to see if we logged in as w4sp-lab
-    if os.getlogin() != 'cybertek':
-        print('[*] Please login as cybertek and run script with sudo')
-        sys.exit(-1)
+ #   if os.getlogin() != 'cybertek':
+ #       print('[*] Please login as cybertek and run script with sudo')
+ #       sys.exit(-1)
 
 
     #check dumpcap
@@ -237,65 +237,66 @@ if __name__ == '__main__':
 
 
     #see if we can run docker
-    try:
-        images = subprocess.check_output([b'docker', b'images']).split(b'\n')
-    except (OSError,subprocess.CalledProcessError) as e:
+  #  try:
+  #      images = subprocess.check_output([b'docker', b'images']).split(b'\n')
+  #  except (OSError,subprocess.CalledProcessError) as e:
 
         #if e is of type subprocess.CalledProcessError, assume docker is installed but service isn't started
-        if type(e) == subprocess.CalledProcessError:
-            subprocess.call(['service', 'docker', 'start'])
-            images = subprocess.check_output([b'docker', b'images']).split(b'\n')
+    #    if type(e) == subprocess.CalledProcessError:
+    #        subprocess.call(['service', 'docker', 'start'])
+    #        images = subprocess.check_output([b'docker', b'images']).split(b'\n')
 
-        elif e.errno == errno.ENOENT:
-            # handle file not found error, lets install docker
-            subprocess.call(['apt-get', 'update'])
-            subprocess.call(['apt-get', 'install', '-y',
-                            'bridge-utils',
-                            'apt-transport-https', 'ca-certificates',
-                            'software-properties-common'])
+    #    elif e.errno == errno.ENOENT:
+    #        # handle file not found error, lets install docker
+    #        subprocess.call(['apt-get', 'update'])
+     #       subprocess.call(['apt-get', 'install', '-y',
+      #                      'bridge-utils',
+       #                     'apt-transport-https', 'ca-certificates',
+        #                    'software-properties-common'])
 
             # check if we already configured docker repos
-            with open('/etc/apt/sources.list', 'a+') as f:
-                if 'docker' not in f.read():
+      #      with open('/etc/apt/sources.list', 'a+') as f:
+      #          if 'docker' not in f.read():
 
                     #adding the docker gpg key and repo
-                    subprocess.call(['wget', 'https://yum.dockerproject.org/gpg',
-                                    '-O', 'docker.gpg'])
+      #              subprocess.call(['wget', 'https://yum.dockerproject.org/gpg',
+        #                            '-O', 'docker.gpg'])
 
-                    subprocess.call(['apt-key', 'add', 'docker.gpg'])
+       #             subprocess.call(['apt-key', 'add', 'docker.gpg'])
 
                     #add the stretch repo, need to figure out how to map kali versions
                     #to debian versions
 
                     #f.write('\ndeb https://apt.dockerproject.org/repo/ debian-stretch main\n')
 
-            subprocess.call(['apt-get', 'update'])
-            subprocess.call(['apt-get', '-y', 'install', 'docker.io'])
-            subprocess.call(['service', 'docker', 'start'])
-            images = subprocess.check_output([b'docker', b'images']).split(b'\n')
+       #     subprocess.call(['apt-get', 'update'])
+       #     subprocess.call(['apt-get', '-y', 'install', 'docker.io'])
+       #     subprocess.call(['service', 'docker', 'start'])
+       #     images = subprocess.check_output([b'docker', b'images']).split(b'\n')
 
-        else:
+        #else:
             # Something else went wrong
-            raise
+         #   raise
 
 
 
-    try:
-        tmp_n = 0
-        for image in images:
-            if b'34334' in image:
-                tmp_n += 1
+    #REMtry:
+     #   tmp_n = 0
+     #   for image in images:
+     #       if b'34334' in image:
+      
+#          tmp_n += 1
         #Check that all needed images have been created
-        if tmp_n > len(os.listdir('images')):
-            print('[*] 34334 images available')
+     #   if tmp_n > len(os.listdir('images')):
+      #      print('[*] 34334 images available')
 
-        else:
-            print('[*] Not enough 34334 images found, building now')
-            lab.docker_build('images/')
+      #  else:
+      #      print('[*] Not enough 34334 images found, building now')
+    #REM        lab.docker_build('images/')
 
-    except:
+    #except:
         #just a placeholder
-        raise
+    #    raise
 
     #adding logic to handle writing daemon.json so we can disable docker iptables rules
     daemon_f = '/etc/docker/daemon.json'
@@ -312,7 +313,7 @@ if __name__ == '__main__':
     subprocess.call(['iptables', '-X'])
 
 
-    lab.docker_clean()
+    #lab.docker_clean()
 
 
     app.config['DEBUG'] = args.debug
@@ -320,7 +321,9 @@ if __name__ == '__main__':
     p.start()
 
     time.sleep(3)
-
+    webbrowser.get('firefox').open_new_tab('http://www.google.com')
+    
+    
     print('[*] Lab Launched, Start browser at http://127.0.0.1:5000')
     print('[*] Do not close this terminal. Closing Terminal will terminate lab.')
   
