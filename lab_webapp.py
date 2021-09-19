@@ -161,13 +161,14 @@ def runshark():
 
 @app.route('/setupfirewall')
 def setupfw():
+    print("Nu er vi i Setupp Firewall")
     """start the firewall network"""
 
     if len(NSROOT.ns) >= 1:
         return 'REFRESH'
 
     try:
-        lab.setup_network_firewall('eth0')
+        lab.setup_snort('eth0')
         time.sleep(3)
         return 'REFRESH'
 

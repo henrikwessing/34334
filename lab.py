@@ -5,6 +5,44 @@ from multiprocessing import Process
 from random import randrange
 
 
+def setup_snort(h_if):
+	print("Setting up SNORT environment")
+	try:
+		ns_root.shutdown()
+	except:
+		print('[*] Did not shutdown cleanly, trying again')
+		docker_clean()
+	finally:
+		docker_clean()
+  # Create ids node
+	image = '34334:ids'
+	name = 'snort'
+	if not c(name):
+		ns_root.register_ns(name, image)
+	nic = c(name).connect(ns_root)
+	c(name).enter_ns()
+	r('ip link set $nic up')
+  # Create internet node
+	image = '34334/labs:inet'
+	name = 'inet'
+	if not c(name):
+		ns_root.register_ns(name, image)
+	nic1 = c(name).connect(ns_root)
+	nic2 = c(name).connect(c('snort'))
+	c(name).enter_ns()
+	r('ip link set $nic1 up')
+	r('ip link set $nic2 up')
+	
+
+
+	ns_root.enter_ns()
+	r('service NetworkManager stop')
+	r('ip link set $nic name 34334_lab')
+	r('dhclient -v 34334_lab')   
+	dfgw_set = False
+	
+	new_gw = setup_inet('inet', h_if, '172.0.0.0/24')
+	
 
 def setup_network_routing(h_if):
 

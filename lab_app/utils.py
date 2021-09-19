@@ -99,7 +99,7 @@ def docker_build(image_path):
 #    for image in next(os.walk( os.path.join(curdir,'.')))[1]:
 
         #no point in rebuilding the base image
-    for image in ('victims','vrrpd','router','inet','switch'):
+    for image in ('inet','ids2b'):
         image_name = '34334/labs:' + image
         r('docker build -t $image_name $image')
 

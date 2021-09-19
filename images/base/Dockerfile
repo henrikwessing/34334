@@ -24,7 +24,7 @@ RUN useradd -d /home/cybertek -m -p "$(openssl passwd -1 34334)" -s /bin/bash cy
 RUN update-locale
 
 #install python dependencies
-RUN pip install netifaces
+#RUN pip install netifaces
 
 #create directory for child images to store configuration in
 RUN  mkdir -p /var/log/supervisor && mkdir -p /etc/supervisor/conf.d
