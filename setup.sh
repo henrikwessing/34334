@@ -6,4 +6,4 @@ tar -vxf ids.tar.gz
 sudo docker load -i ids.tar
 rm ids.tar
 rm ids.tar.gz
-sudo docker run -i --net=host --name=snort 34334:ids &
+sudo docker run -ti --net=host --name=snort 34334:ids &
