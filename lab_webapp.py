@@ -325,9 +325,7 @@ if __name__ == '__main__':
     p.start()
 
     time.sleep(3)
-    webbrowser.get('firefox').open_new_tab('http://www.google.com')
-    
-    
+    webbrowser.open('http://127.0.0.1:5000')   
     print('[*] Lab Launched, Start browser at http://127.0.0.1:5000')
     print('[*] Do not close this terminal. Closing Terminal will terminate lab.')
   
