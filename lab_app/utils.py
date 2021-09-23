@@ -6,6 +6,7 @@ import fcntl
 import struct
 import time
 import os
+import gdown
 
 
 def check_dumpcap():
@@ -86,25 +87,19 @@ def r(cmd):
 
 
 def docker_build(image_path):
-    """this will build all of the lab images"""
-
-    orig_dir = os.getcwd()
-    os.chdir(image_path)
-    print(os.getcwd())
-    curdir = os.getcwd()
-
-    #first we need to build the base image so we can build the rest
-    r('docker build -t 34334/labs:base base')
-
-#    for image in next(os.walk( os.path.join(curdir,'.')))[1]:
-
-        #no point in rebuilding the base image
-    for image in ('inet','ids2b'):
-        image_name = '34334/labs:' + image
-        r('docker build -t $image_name $image')
-
-    #go back to the working dir
-    os.chdir(orig_dir)
+	"""this will build all of the lab images"""
+	orig_dir = os.getcwd()
+	os.chdir(image_path)
+	print(os.getcwd())
+	curdir = os.getcwd()
+	# first we need to build the base image so we can build the rest
+	r('docker build -t 34334:base base')
+	# snort image is assumed build with tag 34334:ids
+	for image in ('inet','router'):
+		image_name = '34334:' + image
+		r('docker build -t $image_name $image')
+	#go back to the working dir
+	os.chdir(orig_dir)
 
 def docker_clean():
     """clean up our mess, this will remove all 34334 related containers

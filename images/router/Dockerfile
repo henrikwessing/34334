@@ -1,4 +1,4 @@
-FROM 34334/labs:base
+FROM 34334:base
 
 #install vrrpd, lldpd and quagga
 RUN apt-get install -y lldpd quagga openssh-server

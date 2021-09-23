@@ -1,5 +1,5 @@
 #get the base default ubuntu 14.04 image
-FROM ubuntu:14.04
+FROM ubuntu:16.04
 
 MAINTAINER 34334
 
@@ -21,7 +21,7 @@ RUN usermod -p '$y$j9T$U8Hk9xud8LdTgUX68Z7lx.$kW2qyUmQDuzM9tIBISwbaIVFC9wSdh05Zu
 RUN useradd -d /home/cybertek -m -p "$(openssl passwd -1 34334)" -s /bin/bash cybertek -G sudo
 
 #fix unnecessary errors down the line
-RUN update-locale
+#RUN update-locale
 
 #install python dependencies
 #RUN pip install netifaces

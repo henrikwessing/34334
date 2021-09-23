@@ -58,7 +58,6 @@ def get_connections():
                     yield ns.pid,os.pid
 
 
-
 def psef(grep):
     """this is python replacement for ps -ef, based off of
         http://stackoverflow.com/questions/2703640/process-list-on-linux-via-python"""
@@ -81,11 +80,44 @@ def psef(grep):
     return False
 
 
+def buildlab():
+	
+	print("Building lab in own process")
+	time.sleep(3)
+	webbrowser.open('http://127.0.0.1:5000/building')   
+	#check dumpcap
+	lab.check_dumpcap()
+  #see if we can run docker
+	try:
+		images = subprocess.check_output([b'docker', b'images']).split(b'\n')
+	except (OSError,subprocess.CalledProcessError) as e:
+		# if e is of type subprocess.CalledProcessError, assume docker is installed but service isn't started
+		if type(e) == subprocess.CalledProcessError:
+			subprocess.call(['service', 'docker', 'start'])
 
+	lab.docker_build('images/')
+  #adding logic to handle writing daemon.json so we can disable docker iptables rules
+	daemon_f = '/etc/docker/daemon.json'
+	if not os.path.isfile(daemon_f):
+		with open(daemon_f, 'w+') as f:
+			f.write('{ "iptables": true }')
+	subprocess.call(['iptables', '-P', 'INPUT', 'ACCEPT'])
+	subprocess.call(['iptables', '-P', 'FORWARD', 'ACCEPT'])
+	subprocess.call(['iptables', '-P', 'OUTPUT', 'ACCEPT'])
+	subprocess.call(['iptables', '-t', 'nat', '-F'])
+	subprocess.call(['iptables', '-t', 'mangle', '-F'])
+	subprocess.call(['iptables', '-F'])
+	subprocess.call(['iptables', '-X'])
+
+    #lab.docker_clean()
+
+	time.sleep(10)
+	print("Nu er vi færdige")
+	webbrowser.open('http://127.0.0.1:5000',new = 0)
+	Process.terminate
 
 # use decorators to link the function to a url
 @app.route('/')
-@app.route('/index')
 def launcher():
 
     dockers = []
@@ -97,6 +129,10 @@ def launcher():
 
     return render_template('launcher.html', dockers=dockers, text=text)
 
+
+@app.route('/building')
+def waiting():
+	return("Vent et øjeblik mens lab images bygges")
 
 @app.route('/getnet')
 def getnet():
@@ -205,9 +241,11 @@ def shutdown():
     return ''
 
 
+
+
+
 # start the server with the 'run()' method
 if __name__ == '__main__':
-
 
     script_dir = os.path.dirname(os.path.realpath(__file__))
     cwd = os.getcwd()
@@ -216,117 +254,19 @@ if __name__ == '__main__':
         print('[*] Not run from the script directory, changing dirs')
         #move to the directory the script is stored in
         os.chdir(script_dir)
-
-    #check to see if the w4sp-lab user exists
-#    try:
-#        temppwd = pwd.getpwnam('cybertek')
-#        print("Password entry: "  + str(temppwd))
-#    except KeyError:
-#        print('[*] w4sp-lab user non-existant, creating')
-#        try:
-#            lab.utils.r('useradd -m cybertek -s /bin/bash -G sudo,wireshark -U')
-#        except:
-#            lab.utils.r('useradd -m cybertek -s /bin/bash -G sudo -U')  
-#        print("[*] Please run: 'passwd cybertek' to set your password, then login as w4sp-lab and rerun lab")
- #       sys.exit(-1)
-
-    #check to see if we logged in as w4sp-lab
- #   if os.getlogin() != 'cybertek':
- #       print('[*] Please login as cybertek and run script with sudo')
- #       sys.exit(-1)
-
-
-    #check dumpcap
-    lab.check_dumpcap()
-
-
-    #see if we can run docker
-  #  try:
-  #      images = subprocess.check_output([b'docker', b'images']).split(b'\n')
-  #  except (OSError,subprocess.CalledProcessError) as e:
-
-        #if e is of type subprocess.CalledProcessError, assume docker is installed but service isn't started
-    #    if type(e) == subprocess.CalledProcessError:
-    #        subprocess.call(['service', 'docker', 'start'])
-    #        images = subprocess.check_output([b'docker', b'images']).split(b'\n')
-
-    #    elif e.errno == errno.ENOENT:
-    #        # handle file not found error, lets install docker
-    #        subprocess.call(['apt-get', 'update'])
-     #       subprocess.call(['apt-get', 'install', '-y',
-      #                      'bridge-utils',
-       #                     'apt-transport-https', 'ca-certificates',
-        #                    'software-properties-common'])
-
-            # check if we already configured docker repos
-      #      with open('/etc/apt/sources.list', 'a+') as f:
-      #          if 'docker' not in f.read():
-
-                    #adding the docker gpg key and repo
-      #              subprocess.call(['wget', 'https://yum.dockerproject.org/gpg',
-        #                            '-O', 'docker.gpg'])
-
-       #             subprocess.call(['apt-key', 'add', 'docker.gpg'])
-
-                    #add the stretch repo, need to figure out how to map kali versions
-                    #to debian versions
-
-                    #f.write('\ndeb https://apt.dockerproject.org/repo/ debian-stretch main\n')
-
-       #     subprocess.call(['apt-get', 'update'])
-       #     subprocess.call(['apt-get', '-y', 'install', 'docker.io'])
-       #     subprocess.call(['service', 'docker', 'start'])
-       #     images = subprocess.check_output([b'docker', b'images']).split(b'\n')
-
-        #else:
-            # Something else went wrong
-         #   raise
-
-
-
-    #REMtry:
-     #   tmp_n = 0
-     #   for image in images:
-     #       if b'34334' in image:
-      
-#          tmp_n += 1
-        #Check that all needed images have been created
-     #   if tmp_n > len(os.listdir('images')):
-      #      print('[*] 34334 images available')
-
-      #  else:
-      #      print('[*] Not enough 34334 images found, building now')
-    #REM        lab.docker_build('images/')
-
-    #except:
-        #just a placeholder
-    #    raise
-
-    #adding logic to handle writing daemon.json so we can disable docker iptables rules
-    daemon_f = '/etc/docker/daemon.json'
-    if not os.path.isfile(daemon_f):
-        with open(daemon_f, 'w+') as f:
-            f.write('{ "iptables": true }')
-
-    subprocess.call(['iptables', '-P', 'INPUT', 'ACCEPT'])
-    subprocess.call(['iptables', '-P', 'FORWARD', 'ACCEPT'])
-    subprocess.call(['iptables', '-P', 'OUTPUT', 'ACCEPT'])
-    subprocess.call(['iptables', '-t', 'nat', '-F'])
-    subprocess.call(['iptables', '-t', 'mangle', '-F'])
-    subprocess.call(['iptables', '-F'])
-    subprocess.call(['iptables', '-X'])
-
-
-    #lab.docker_clean()
-
-
     app.config['DEBUG'] = args.debug
-    p = Process(target=app.run)
+    p = Process(target=buildlab)
     p.start()
-
-    time.sleep(3)
-    webbrowser.open('http://127.0.0.1:5000')   
     print('[*] Lab Launched, Start browser at http://127.0.0.1:5000')
     print('[*] Do not close this terminal. Closing Terminal will terminate lab.')
+    app.run(use_reloader=False)
+   
+
+   
+   
+
+
+ 
+
   
 
