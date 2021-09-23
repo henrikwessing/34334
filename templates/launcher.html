@@ -18,23 +18,24 @@
 
   </head>
   <body style="background-color: #999999">
-  	<div class="jumbotron text-center" style="background-color: #999999">
-  		<h1>{{text.title}}</h1>
+  	<div class="jumbotron text-center" style="background-image: url(../static/34334-picture.jpg); background-size: 100% 100%">
+  		<div class="text-danger">
+  			<h1>{{text.title}}</h1>
+  		</div>
 		</div>
 		<div class="container">
-      <div class="row">
+      <div class="row" style="text-white">
       	<p>{{text.text}}</p>
       </div>
     </div>
     <div class="container-fluid">
     	<div class="row">
 		    <div class="col-sm-2 col-md-2 col-lg-2">
-					<button id="setupfirewall" type="submit" class="btn btn-danger">SNORT LAB</button></br> 
-					
-					<input type="submit" id="setupfirewall" class="btn btn-info" value="SNORT LAB">
-	       	<br><br>
-<!--       <button id="setuprouting" type="submit" class="btn btn-danger">SETUP ROUTING</button></br> -->
-	     		<input type="button" id="shutdown" class="btn btn-info" value="LUK LAB">
+					<button id="setupfirewall" type="submit" class="btn btn-danger">Firewall Lab</button>
+					<br><br>
+					<button id="setuprouting" type="submit" class="btn btn-muted">Routing Lab</button>
+					<br><br>
+	     		<button type="submit" id="shutdown" class="btn btn-danger">Luk Lab</button>
        	</div>
 		    <div id="mynetwork" class="col-sm-10 col-md-10 col-lg-10" style="background-color: #AAAAAA">
 		    	<p>Aktuelt opbygget net</p>
@@ -66,7 +67,6 @@
                     style="width: 100%">
                     </div>
                 </div>
-             <p>*Denne opgave kan tage et par minutter</p>
             </div>
         </div>
     </div>
@@ -77,14 +77,14 @@
 
 
     <!-- Modal Start here-->
-<div class="modal fade bs-example-modal-lg" id="setupfirewall" tabindex="-1"
+<div class="modal fade bs-example-modal-lg" id="setupmodal" tabindex="-1"
     role="dialog" aria-hidden="true" data-backdrop="static">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title">
                     <span>
-                    </span>Etablerer firewall lab-miljøet....
+                    </span>Etablerer lab-miljøet....
                  </h4>
             </div>
             <div class="modal-body">
@@ -94,7 +94,6 @@
                     style="width: 100%">
                     </div>
                 </div>
-             <p>Denne proces kan tage nogle minutter</p>
             </div>
         </div>
     </div>
@@ -259,30 +258,37 @@
         $('#setupmodal').modal('hide');
         $('#shutdownmodal').modal('hide');
 
-    }
+    	};
 
 
        $(function() {
            $('button#setupfirewall').click(function(){
-
-               $.get('setupfirewall', function(data) {
-
-                   $('button#setupfirewall').text(data);
-
-               });
-
-               $('#setupmodal').modal('show');
-               $.getJSON('getnet', redrawAll);
-
+							$('#setupmodal').modal('show');
+              $.get('setupfirewall', function(data) {
+	              $('button#setupfirewall').text(data);
+	              $.getJSON('getnet', redrawAll);
+              });              
+              
             });
         });
 
        $(function() {
+           $("button#shutdown").click(function(){
+              $('#shutdownmodal').modal('show');
+ 	            $.get('shutdown')
+ 	            	.always(function(data){
+ 	            		$('button#setupfirewall').text('Firewall Lab');
+ 	            		$.getJSON('getnet', redrawAll);})
+
+            });
+        });
+  /*             $(function() {
            $('button#setuprouting').click(function(){
 
                $.get('setuprouting', function(data) {
 
                    $('button#setuprouting').text(data);
+                   
 
                });
 
@@ -291,23 +297,9 @@
 
             });
         });
+*/
 
 
-
-
-       $(function() {
-           $("button#shutdown").click(function(){
-               $.ajax({
-                   type: "GET",
-                   url: "shutdown",
-               });
-
-               $('#shutdownmodal').modal('show');
-               $.getJSON('getnet', redrawAll);
-               $('button#setup').text('SETUP');
-
-            });
-        });
     </script>
 
     </div>

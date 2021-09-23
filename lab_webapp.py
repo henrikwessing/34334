@@ -177,40 +177,22 @@ def getnet():
     return jsonify(**data)
 
 
-
-@app.route('/runshark', methods=['POST', 'GET'])
-def runshark():
-   """this runs wireshark within the network namespace"""
-   error = None
-   if request.method == 'POST':
-       print('[*] POST IN RUNSHARK')
-       for key in request.form.keys():
-           if request.form[key] == '1':
-               lab.runshark('root')
-           for ns in NSROOT.ns:
-               if ns.pid == request.form[key]:
-                   print(ns.pid)
-                   print(ns.name)
-                   lab.runshark(ns.name)
-   return 'launched'
-
-
 @app.route('/setupfirewall')
 def setupfw():
     print("Nu er vi i Setupp Firewall")
     """start the firewall network"""
 
     if len(NSROOT.ns) >= 1:
-        return 'REFRESH'
+        return 'Opdater Lab'
 
     try:
-        lab.setup_snort('eth0')
+        lab.setup_firewall('eth0')
         time.sleep(3)
-        return 'REFRESH'
+        return 'Opdater Lab'
 
     except:
         print(traceback.format_exc())
-        return 'ERROR'
+        return 'Fejl'
 
 @app.route('/setuprouting')
 def setuprouting():
@@ -233,12 +215,17 @@ def setuprouting():
 
 
 @app.route('/shutdown')
-def shutdown():
-    """cleans up mess"""
+def shutdownlab():
+	"""cleans up mess"""
+	print("Nu er vi i shutdown")
+	try:
+		lab.ns_root.shutdown()
+		time.sleep(3)
+		return 'SUCCESS'
+	except:
+		print(traceback.format_exc())
+		return 'FEJL'
 
-    lab.ns_root.shutdown()
-    time.sleep(3)
-    return ''
 
 
 
