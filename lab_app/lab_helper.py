@@ -37,7 +37,7 @@ def runshark(name):
 
 
 
-def setup_sw(sw, base_ip, clients):
+def setup_sw(sw, base_ip):
     """make all the connections for sw1 as well as ip for clients
        base ip only works with /24s and you have to specify the .0 address 
        for right now and there is no sanity checking, routers are on .1 and 
@@ -51,12 +51,12 @@ def setup_sw(sw, base_ip, clients):
     sw_ip = base_ip % 2
 
     print('aaaaarrrrgggggssss')
-    print(clients)
+    #print(clients)
 
     #connect each container/docker up with a veth
-    for conn in clients:
-        #print conn
-        sw.connect(c(conn))
+    #for conn in clients:
+    #    #print conn
+    #    sw.connect(c(conn))
 
     
     #drop into netns to configure the bridge

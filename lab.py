@@ -164,8 +164,7 @@ def setup_network_routing(h_if):
     nic = c('sw1').connect(ns_root)
     #dropping in to ns to attach interface to bridge
     c('sw1').enter_ns()
-    ###########################
-
+		###########################
     r('brctl addif br0 $nic')
     r('ip link set $nic up')
 
@@ -219,109 +218,127 @@ def setup_network_routing(h_if):
     """
 
 
+def setup_firewall(h_if):
+	try:
+		ns_root.shutdown()
+	except:
+		print('[*] Did not shutdown cleanly, trying again')
+		docker_clean()
+	finally:
+		docker_clean()
+#    net_1 = {'subnet' : '192.168.100.0/24',
+#                'hubs' : [
+#		    {'switch' : ['sw1'],
+#			'clients' : [ {'vrrpd' : ['router1']}, {'vrrpd' : ['router2']} ]
+#                    }]                   
+#            }#
+#
+ #   net_2 = {'subnet' : '10.100.200.0/24',
+ #               'hubs' : [
+#                    {'switch' : ['sw2'],
+#                        'clients' : [
+#                            {'vrrpd' : ['router1']},
+#                            {'inet' : ['inet']},
+#                            {'victims' : ['server2']}
+#                        ]
+#                    }
+#                ]
+#            }
+		# Create containers
+		if not c('server'):
+			ns_root.register_ns('server','34334:victims')   
+		if not c('internet'):
+			ns_root.register_ns('internet','34334:inet')   
+		if not c('snort'):
+			ns_root.register_ns('snort','34334:ids') 
+		if not c('switch'):
+			ns_root.register_ns('sw','34334:switch')
+		
+		# Connect bridge to snort, server and internet
+		c('sw').enter_ns()
+		r('brctl addbr br0')
+		r('ip link set br0 up')
+		c('sw').exit_ns()
+		print("NU SKAL DETTE OBSERVERES")
+		for name in (['snort','internet','server']):
+			nic = c('sw').connect(c(name))
+			r('ip netns exec $name ip link set $nic name lab0')
+			r('ip netns exec sw ip link set $nic name '+name+'0')
+			r('ip netns exec $name ip link set lab0 up') 
+			r('ip netns exec sw ip link set '+name+'0 up')
+			r('ip netns exec sw brctl addif br0 '+name+'0')
+		print("OBSERVATION SLUT")
+				
+		# Add links from all devices to bridge
+		#setup inet, just making sure we are in the root ns
+		#ns_root.enter_ns()
+		#rename our interface and move it into inet
+		#r('ip link set $h_if down')
+		#r('ip link set $h_if name root')
+		#r('ip link set root netns inet')
+		#connect kali host to sw - hardcoding is bad
+		nic = c('sw').connect(ns_root)
+		print("Nic name: " + nic)
+		#dropping in to ns to attach interface to bridge
+		c('sw').enter_ns()
+		###########################
+		r('brctl addif br0 $nic')
+		r('ip link set $nic up')
+		########################### 
+		
+		#startup dhcpserver
+		#base_ip = '192.168.0.0/24'
+		#base_ip = base_ip.replace('0/24', '%d/24')
+		#default_gw = (base_ip % 1).strip('/24')
+		#sw_ip = base_ip % 2
+		#router_opt = '--dhcp-option=option:router,%s' % default_gw
+		#min_ip = (base_ip % 100).strip('/24')
+		#max_ip = (base_ip % 200).strip('/24')
+		#range_opt = '--dhcp-range=%s,%s' % (min_ip, max_ip)
+		#r('docker exec sw dnsmasq -E --domain=labs -s labs $router_opt $range_opt')
+		r('ip netns exec internet ip addr add 192.168.0.1/24 dev lab0')
+		r('ip netns exec snort ip addr add 192.168.0.3/24 dev lab0')
+		r('ip netns exec server ip addr add 192.168.0.4/24 dev lab0')
+		
+		
+		ns_root.enter_ns()
+		#ensure network manager doesn't mess with anything
+		r('service NetworkManager stop')
+		r('ip link set $nic name 34334_lab')
+		r('ip link set 34334_lab up')
+		#p = Process(target=r, args=('dhclient -v w4sp_lab',))
+		#p.start()
+		#r('dhclient -v 34334_lab')
+		r('ip addr add 192.168.0.2/24 dev 34334_lab')
+				#setup_sw('sw','192.168.0.0/24')
+		#new_gw = setup_inet('internet', h_if, '192.168.0.0/24')
+ 
+		c('internet').enter_ns()
+		inet_nic='lab0'
+		old_gw = get_base_subnet(sub) + '.1'
+		r('ip route del 0/0')
+		r('ip route add 192.168.0.0/24 via $old_gw')
+		r('iptables -t nat -A POSTROUTING -o $h_if -j MASQUERADE')
+		r('iptables -A FORWARD -i $h_if -o $inet_nic -m state --state RELATED,ESTABLISHED -j ACCEPT')
+		r('iptables -A FORWARD -i $inet_nic -o $h_if -j ACCEPT')
 
-
-
-def setup_network_firewall(h_if):
-
-    try:
-        ns_root.shutdown()
-
-    except:
-        print('[*] Did not shutdown cleanly, trying again')
-        docker_clean()
-
-    finally:
-        docker_clean()
-
-    net_1 = {'subnet' : '192.168.100.0/24',
-                'hubs' : [
-		    {'switch' : ['sw1'],
-			'clients' : [ {'vrrpd' : ['router1']}, {'vrrpd' : ['router2']} ]
-                    }]                   
-            }
-
-    net_2 = {'subnet' : '10.100.200.0/24',
-                'hubs' : [
-                    {'switch' : ['sw2'],
-                        'clients' : [
-                            {'vrrpd' : ['router1']},
-                            {'inet' : ['inet']},
-                            {'victims' : ['server2']}
-                        ]
-                    }
-                ]
-            }
-
-
-    create_netx(net_1)
-    create_netx(net_2)
-
-    #we are going to assume we are only dealing with one hub
-    #yes....this is gross, maybe make a convenience function
-    #this gets 'sw1' for example in net_1
-    sw1 = [net_1['hubs'][0][x] for x in net_2['hubs'][0].keys() if x != 'clients'][0][0]
-
-    sw2 = [net_2['hubs'][0][x] for x in net_2['hubs'][0].keys() if x != 'clients'][0][0]
-
-    #here we fixup dns by adding the other dns servers ip to /etc/resolv.conf
-    for dns in ['sw1', 'sw2']:
-        for dns2 in (sw1,sw2):
-            if dns != dns2:
-                #should only have one ip.....
-                print (dns + "  " + str(c(dns))) 
-                nic,ip = next(c(dns).get_ips()).popitem()
-                echo = 'echo nameserver %s >> /etc/resolv.conf' % ip
-                #add the other nameserver to resolv.conf
-                #we are using subprocess here as we have a complicated command, " and ' abound
-                subprocess.check_call(['docker', 'exec', dns, 'bash', '-c', echo])
-
-    #setup inet, just making sure we are in the root ns
-    ns_root.enter_ns()
-    #rename our interface and move it into inet
-    r('ip link set $h_if down')
-    r('ip link set $h_if name root')
-    r('ip link set root netns inet')
-
-    #connect host to sw1 - hardcoding is bad
-    nic = c('sw1').connect(ns_root)
-    #dropping in to ns to attach interface to bridge
-    c('sw1').enter_ns()
-    ###########################
-
-    r('brctl addif br0 $nic')
-    r('ip link set $nic up')
-
-    ########################### 
-    ns_root.enter_ns()
-
-    #ensure network manager doesn't mess with anything
-    r('service NetworkManager stop')
-    r('ip link set $nic name 34334_lab')
-    #p = Process(target=r, args=('dhclient -v w4sp_lab',))
-    #p.start()
-    r('dhclient -v 34334_lab')
-    
-    c('inet').enter_ns()
+		
     ###############################################
      
-    #add the routes to the other network
-    #hardcoding since I am lazy
-    other_net = net_1['subnet'].strip('/24')
-    other_gw = net_2['subnet'].strip('0/24') + '1'
-
-    dfgw_set = False
-
-    while not dfgw_set:
-        for ips in c('inet').get_ips():
-            if 'inet_0' in ips.keys():
-                r('route add -net $other_net netmask 255.255.255.0 gw $other_gw')
-                dfgw_set = True
+		#add the routes to the other network
+		#hardcoding since I am lazy
+		#other_net = net_1['subnet'].strip('/24')
+		#other_gw = net_2['subnet'].strip('0/24') + '1'
+		#dfgw_set = False
+#		while not dfgw_set:
+#			for ips in c('inet').get_ips():
+#				if 'inet_0' in ips.keys():
+	#				r('route add -net $other_net netmask 255.255.255.0 gw $other_gw')
+	#				dfgw_set = True
         
-    #############################################
-    c('inet').exit_ns()
-
-    """
+		#############################################
+	#	c('inet').exit_ns()
+		"""
     try:
         r('ping -c 2 192.100.200.1')
 
@@ -435,7 +452,7 @@ def setup_network(h_if):
 
     #ensure network manager doesn't mess with anything
     r('service network-manager stop')
-    r('ip link set $nic name w4sp_lab')
+    r('ip link set $nic name 34334_lab')
     #p = Process(target=r, args=('dhclient -v w4sp_lab',))
     #p.start()
     r('dhclient -v 34334_lab')    
