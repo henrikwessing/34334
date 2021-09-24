@@ -95,7 +95,7 @@ def docker_build(image_path):
 	# first we need to build the base image so we can build the rest
 	r('docker build -t 34334:base base')
 	# snort image is assumed build with tag 34334:ids
-	for image in ('inet','router'):
+	for image in ('inet','router','victims','switch'):
 		image_name = '34334:' + image
 		r('docker build -t $image_name $image')
 	#go back to the working dir

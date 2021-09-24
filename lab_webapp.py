@@ -179,12 +179,10 @@ def getnet():
 
 @app.route('/setupfirewall')
 def setupfw():
-    print("Nu er vi i Setupp Firewall")
+    print("Nu er vi i Setup Firewall")
     """start the firewall network"""
-
     if len(NSROOT.ns) >= 1:
         return 'Opdater Lab'
-
     try:
         lab.setup_firewall('eth0')
         time.sleep(3)

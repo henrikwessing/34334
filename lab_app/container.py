@@ -170,6 +170,47 @@ class root_ns(object):
         r('ip link add $nicname type veth peer name tmp')
         r('ip link set tmp netns $self.pid')
         r('ip link set $nicname netns $pid')
+        
+        
+        #need to research more, but pretty sure checksum offloading was
+        #screwing up udp packets.....
+        #http://lists.thekelleys.org.uk/pipermail/dnsmasq-discuss/2007q3/001506.html
+        #this disables offloading....
+        """if self.name != 'root':
+            r('ip netns exec $self.name ethtool -K tmp rx off tx off')
+            """
+
+        self.enter_ns()
+        ###########################################
+
+        #rename tmp to match veth peer in other ns
+        r('ip link set dev tmp name $nicname')
+        r('ethtool -K $nicname rx off tx off')
+
+        self.exit_ns()
+
+        #now append the nics to our list and the other containers
+        self.nics.append(nicname)
+        container.nics.append(nicname)
+        return nicname
+
+    def connectbridge(self, bridge):
+        """This will create a ethernet connection to another ns"""
+            #count up our nics for naming scheme of container name + _number
+     #   tmp_n = 0
+     #   for nic in container.nics:
+     #       tmp_n +=1
+
+        #creating a local var for the r() call
+        pid = container.pid
+
+        #nicname = self.name + '_' + str(tmp_n)
+        nicname = veth + '_br'
+        
+
+        r('ip link add $nicname type veth peer name tmp')
+        r('ip link set tmp netns $self.pid')
+        r('ip link set $nicname netns $pid')
 
         #need to research more, but pretty sure checksum offloading was
         #screwing up udp packets.....
