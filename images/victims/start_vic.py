@@ -116,8 +116,8 @@ def make_http():
 
 
 ftps = ['ftp1', 'ftp2']
-user = 'w4sp'
-passwd = 'w4spbook'
+user = 'cybertek'
+passwd = '34334'
 
 
 def do_ftps():
@@ -168,7 +168,7 @@ def do_smb():
         for smb_host in smbs:
 
             time.sleep(random.uniform(10,20))
-            smb = smbclient.SambaClient(server=smb_host, share='secured', username='w4sp', password='w4spbook')
+            smb = smbclient.SambaClient(server=smb_host, share='secured', username='cybertek', password='34334')
             smb.listdir('/')
             time.sleep(1)
 

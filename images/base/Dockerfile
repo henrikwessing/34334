@@ -9,6 +9,7 @@ LABEL 34334=true
 ENV DEBIAN_FRONTEND noninteractive
 
 #things that are nice to have on all images
+RUN sed -i -e 's/http:\/\/archive\.ubuntu\.com\/ubuntu\//http:\/\/mirrors\.dotsrc\.org\/ubuntu/' /etc/apt/sources.list
 RUN apt-get -y update && apt-get -y upgrade
 #RUN apt-get -y install wireshark tshark 
 RUN apt-get -y install bridge-utils ethtool

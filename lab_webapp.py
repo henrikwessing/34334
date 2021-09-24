@@ -139,7 +139,6 @@ def getnet():
 
     """This returns the nodes and edges used by visjs, node = { 'id': ns.pid, 'label': ns.name, 'title': ip_address }
         edges = { 'from': ns_connected_from, 'to': ns_connected_to }"""
-    print("NU ER VI I GETNET")
     data = {}
     data['nodes'] = []
     data['edges'] = []
