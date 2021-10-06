@@ -241,7 +241,7 @@ def create_netx(net):
     print("Creating netx")
 
     subnet = net['subnet']
-    image = '34334/labs:%s'
+    image = '34334:%s'
     sw = ''
     sw_clients = []
 
@@ -257,6 +257,7 @@ def create_netx(net):
                     #if container doesn't already exist create it
                     if not c(name):
                         print(net)
+                        print(d_image)
                         ns_root.register_ns(name, d_image)
             else:
                 for clients in hub[tag]:
@@ -334,7 +335,7 @@ def create_netr():
     """connect routers and swicthes"""
     print("Creating network between routers")
 
-    image = '34334/labs:%s'
+    image = '34334:%s'
 
     #lets create all router containers
     tag = 'router'

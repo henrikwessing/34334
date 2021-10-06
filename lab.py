@@ -85,7 +85,7 @@ def setup_network_routing(h_if):
 
 
 
-    image = '34334/labs:router'
+    image = '34334:router'
     name = 'router2'
     if not c(name):
       ns_root.register_ns(name, image)
@@ -110,7 +110,7 @@ def setup_network_routing(h_if):
    
 
     # Creating hosts as base images and connect
-    image = '34334/labs:base'
+    image = '34334:base'
     for i in range(4):
       k = str(i+1)
       name = 'host' + k

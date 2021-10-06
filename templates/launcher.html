@@ -1,151 +1,32 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>{{text.title}}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="static/js/jquery-1.11.3.min.js"></script>
-    <link href="static/css/bootstrap.min.css" rel="stylesheet" media="screen">
-    <script src="static/js/bootstrap.min.js"></script>
-   <script type="text/javascript" src="static/visjs/vis-network.min.js"></script>      
-   <link href="static/visjs/vis-network.min.css" rel="stylesheet" type="text/css"/>
-   <style type="text/css">
-        #mynetwork {
-
-            height: 500px;
-        }
-    </style>
-
-  </head>
-  <body style="background-color: #999999">
-  	<div class="jumbotron text-center" style="background-image: url(../static/34334-picture.jpg); background-size: 100% 100%">
-  		<div class="text-danger">
-  			<h1>{{text.title}}</h1>
-  		</div>
-		</div>
-		<div class="container">
-      <div class="row" style="text-white">
-      	<p>{{text.text}}</p>
-      </div>
+{% extends "base.html" %}
+{% block title %}{{text.title}}{% endblock %}
+{% block content %}
+<div class="container">
+	<div class="row" style="text-white">
+		<p>{{text.text}}</p>
+	</div>
+	</div>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-sm-2 col-md-2 col-lg-2">
+			
+				<button id="setupfirewall" type="submit" class="btn btn-danger">Firewall Lab</button>
+				<br><br>
+				<button id="setuprouting" type="submit" class="btn btn-danger">Routing Lab</button>
+				<br><br>
+     		<button type="submit" id="shutdown" class="btn btn-danger">Luk Lab</button>
+     	</div>
+	    <div id="mynetwork" class="col-sm-10 col-md-10 col-lg-10" style="background-color: #AAAAAA">
+			</div>
     </div>
-    <div class="container-fluid">
-    	<div class="row">
-		    <div class="col-sm-2 col-md-2 col-lg-2">
-					<button id="setupfirewall" type="submit" class="btn btn-danger">Firewall Lab</button>
-					<br><br>
-					<button id="setuprouting" type="submit" class="btn btn-muted">Routing Lab</button>
-					<br><br>
-	     		<button type="submit" id="shutdown" class="btn btn-danger">Luk Lab</button>
-       	</div>
-		    <div id="mynetwork" class="col-sm-10 col-md-10 col-lg-10" style="background-color: #AAAAAA">
-		    	<p>Aktuelt opbygget net</p>
-				</div>
-    </div>
-
-
-
-
-    </div>
-
-
-
-    <!-- Modal Start here-->
-<div class="modal fade bs-example-modal-lg" id="shutdownmodal" tabindex="-1"
-    role="dialog" aria-hidden="true" data-backdrop="static">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">
-                    <span>
-                    </span>Lukker labmiljøet....
-                 </h4>
-            </div>
-            <div class="modal-body">
-                <div class="progress">
-                    <div class="progress-bar progress-bar-info
-                    progress-bar-striped active"
-                    style="width: 100%">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Modal ends Here -->
-
-
-
-
-    <!-- Modal Start here-->
-<div class="modal fade bs-example-modal-lg" id="setupmodal" tabindex="-1"
-    role="dialog" aria-hidden="true" data-backdrop="static">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">
-                    <span>
-                    </span>Etablerer lab-miljøet....
-                 </h4>
-            </div>
-            <div class="modal-body">
-                <div class="progress">
-                    <div class="progress-bar progress-bar-info
-                    progress-bar-striped active"
-                    style="width: 100%">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Modal ends Here -->
-
-    <!-- Modal Start here-->
-<div class="modal fade bs-example-modal-lg" id="setuprouting" tabindex="-1"
-    role="dialog" aria-hidden="true" data-backdrop="static">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title">
-                    <span>
-                    </span>Etablerer router lab-miljøet....
-                 </h4>
-            </div>
-            <div class="modal-body">
-                <div class="progress">
-                    <div class="progress-bar progress-bar-info
-                    progress-bar-striped active"
-                    style="width: 100%">
-                    </div>
-                </div>
-             <p>Denne proces kan tage nogle minutter</p>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Modal ends Here -->
-
-
-
-    <script>
-
-    {% for lab in ('vic2', 'mitm', 'ips', 'sploit', 'elk', 'wifi') %}
-        var {{ 'is_' ~ lab  }} = false;
-    {% endfor %}
-
+   </div>
+  </div>
+	<script>
     var network;
     var nodes = new vis.DataSet();
     var edges = new vis.DataSet();
 
-
-    //disable all of the buttons to start
-    {% for lab in ('vic2', 'mitm', 'ips', 'sploit', 'elk', 'wifi') %}
-        $("{{'button#' ~ lab}}").prop('disabled', true);
-
-    {% endfor %}
-
-
     $.getJSON('getnet', redrawAll);
-
     // create a network
     var container = document.getElementById('mynetwork');
     var data = {
@@ -195,23 +76,6 @@
 
         var is_mitm = false;
         var is_vic2 = false;
-
-        /*
-	//make this based on a call to check if suricata is running
-        $.ajax({
-            type: "GET",
-            url: "is_ips",
-            async: false,
-            success: function(data) {
-                console.log("is_ips returned success!");
-                is_ips = true;
-            },
-            error: function() {
-                console.log("is_ips returned error!");
-                is_ips = false;
-            }
-        });
-	*/
 
 
         var ids = nodes.getIds();
@@ -271,6 +135,19 @@
               
             });
         });
+        
+        $(function() {
+           $('button#setuprouting').click(function(){
+							$('#setupmodal').modal('show');
+              $.get('setuprouting')
+              	.always(function(data) {
+		              $('button#setuprouting').text(data);
+		              $.getJSON('getnet', redrawAll);
+              });              
+              
+            });
+        });
+
 
        $(function() {
            $("button#shutdown").click(function(){
@@ -282,26 +159,7 @@
 
             });
         });
-  /*             $(function() {
-           $('button#setuprouting').click(function(){
-
-               $.get('setuprouting', function(data) {
-
-                   $('button#setuprouting').text(data);
-                   
-
-               });
-
-               $('#setupmodal').modal('show');
-               $.getJSON('getnet', redrawAll);
-
-            });
-        });
-*/
-
-
     </script>
-
-    </div>
+    {% endblock %}
   </body>
 </html>
