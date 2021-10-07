@@ -235,6 +235,11 @@ def get_hosts_net(net):
                             
     return hosts
 
+def create_netnew(net):
+	for nodetype in net['nodes'].keys():
+		print("Creating nodetype")
+		print(nodetype)
+
 
 def create_netx(net):
     """connect switches to clients and adds ip addresses and routes"""

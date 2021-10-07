@@ -45,37 +45,50 @@ def setup_snort(h_if):
 	
 
 def setup_network_routing(h_if):
+	try:
+		ns_root.shutdown()
+	except:
+		print('[*] Did not shutdown cleanly, trying again')
+		docker_clean()
+	finally:
+		docker_clean()
 
-    try:
-        ns_root.shutdown()
+	net = { 'nodes' : [{'router' : ['router1','router2','router3','router4']},
+									 {'switch' : ['sw1']},
+									 {'base'   : ['host1','host2','host3','host4']}
+									]}
+	for nodetypes in net['nodes']:
+		print("Available nodetypes")
+		print(nodetypes)
+		for nodetype in nodetypes.keys():
+			image = '34334:'+nodetype
+			for node in nodetypes[nodetype]:
+				print("Establish "+ node +" of type "+nodetype)
+				if not c(node):
+					ns_root.register_ns(node, image)
 
-    except:
-        print('[*] Did not shutdown cleanly, trying again')
-        docker_clean()
+    
+    
+    #net_1 = {'subnet' : '192.168.100.0/24',
+    #            'hubs' : [
+		#    {'switch' : ['sw1'],
+		#	'clients' : [ {'router' : ['router1']}  ]
+    #             }]                   
+    #        }
 
-    finally:
-        docker_clean()
-
-    net_1 = {'subnet' : '192.168.100.0/24',
-                'hubs' : [
-		    {'switch' : ['sw1'],
-			'clients' : [ {'router' : ['router1']}  ]
-                 }]                   
-            }
-
-    net_2 = {'subnet' : '10.1.4.0/24',
-                'hubs' : [
-                    {'switch' : ['sw2'],
-                        'clients' : [
-                            {'router' : ['router1']}, {'router' : ['router4']}
-                        ]
-                    }
-                ]
-            }
+#    net_2 = {'subnet' : '10.1.4.0/24',
+ #               'hubs' : [
+  #                  {'switch' : ['sw2'],
+   #                     'clients' : [
+    #                        {'router' : {[['router1']}, {'router' : ['router4']}
+     #                   ]
+      #              }
+       #         ]
+        #    }
 
 
-    create_netx(net_1)
-    create_netx(net_2) 
+    #create_netnew(net)
+    #create_netx(net_2) 
     
     ###r('ip netns exec router1 ip link set router1_1 name router1_14')
     ###r('ip netns exec router1 ip link set router1_14 up')
@@ -85,50 +98,47 @@ def setup_network_routing(h_if):
 
 
 
-    image = '34334:router'
-    name = 'router2'
-    if not c(name):
-      ns_root.register_ns(name, image)
+    #image = '34334:router'
+    #name = 'router2'
 
-    name = 'router3'
-    if not c(name):
-      ns_root.register_ns(name, image)
+#    name = 'router3'
+ #   if not c(name):
+  #    ns_root.register_ns(name, image)
 
 
-    connect_router(1,2,'1_2')
-    connect_router(2,4,'2_4')
-    connect_router(4,3,'3_4')
-    connect_router(3,1,'1_3')
+	connect_router(1,2,'1_2')
+	connect_router(2,4,'2_4')
+	connect_router(4,3,'3_4')
+	connect_router(3,1,'1_3')
   
   # Select config file and start service in router 1 and 2
-    for i in range(2):
-      k=str(i+1)
-      r('docker exec -ti router%s sudo mv /etc/quagga/ripd%s.conf /etc/quagga/ripd.conf' % (k,k))
-      r('docker exec -ti router%s sudo mv /etc/quagga/zebra%s.conf /etc/quagga/zebra.conf' % (k,k))
-      r('docker exec -ti router%s sudo service quagga start' % k)
+	for i in range(2):
+		k=str(i+1)
+		r('docker exec -ti router%s sudo mv /etc/quagga/ripd%s.conf /etc/quagga/ripd.conf' % (k,k))
+		r('docker exec -ti router%s sudo mv /etc/quagga/zebra%s.conf /etc/quagga/zebra.conf' % (k,k))
+		r('docker exec -ti router%s sudo service quagga start' % k)
 
    
 
-    # Creating hosts as base images and connect
-    image = '34334:base'
-    for i in range(4):
-      k = str(i+1)
-      name = 'host' + k
-      if not c(name):
-        ns_root.register_ns(name, image)
-        rname = 'router%s' % k
-        nic = c(name).connect(c(rname))
-        r('ip netns exec '+name+' ip link set '+nic+' name h_'+k) 
-        r('ip netns exec '+rname+' ip link set '+nic+' name h_'+k) 
-        r('ip netns exec '+name+' ip addr add 192.168.'+k+'.1'+k+'/24 dev h_'+k)
-        r('ip netns exec '+name+' ip link set h_'+k+' up')
-        r('ip netns exec '+rname+' ip link set h_'+k+' up')
-        r('ip netns exec %s route add default gw 192.168.%s.%s' % (name,k,k))
-
+# Creating hosts as base images and connect
+	image = '34334:base'
+	for i in range(4):
+		k = str(i+1)
+		name = 'host' + k
+		if not c(name):
+			ns_root.register_ns(name, image)
+			rname = 'router%s' % k
+			nic = c(name).connect(c(rname))
+			r('ip netns exec '+name+' ip link set '+nic+' name h_'+k) 
+			r('ip netns exec '+rname+' ip link set '+nic+' name h_'+k) 
+			r('ip netns exec '+name+' ip addr add 192.168.'+k+'.1'+k+'/24 dev h_'+k)
+			r('ip netns exec '+name+' ip link set h_'+k+' up')
+			r('ip netns exec '+rname+' ip link set h_'+k+' up')
+			r('ip netns exec %s route add default gw 192.168.%s.%s' % (name,k,k))
  
     # Start SSH service in each router
-    for i in range(4):
-      r('docker exec router%s service ssh start' % str(i+1)) 
+	for i in range(4):
+		r('docker exec router%s service ssh start' % str(i+1)) 
 
   
 
@@ -137,43 +147,41 @@ def setup_network_routing(h_if):
     #we are going to assume we are only dealing with one hub
     #yes....this is gross, maybe make a convenience function
     #this gets 'sw1' for example in net_1
-    sw1 = [net_1['hubs'][0][x] for x in net_2['hubs'][0].keys() if x != 'clients'][0][0]
+	sw1 = [net_1['hubs'][0][x] for x in net_2['hubs'][0].keys() if x != 'clients'][0][0]
+	sw2 = [net_2['hubs'][0][x] for x in net_2['hubs'][0].keys() if x != 'clients'][0][0]
 
-    sw2 = [net_2['hubs'][0][x] for x in net_2['hubs'][0].keys() if x != 'clients'][0][0]
-
-    #here we fixup dns by adding the other dns servers ip to /etc/resolv.conf
-    for dns in ['sw1', 'sw2']:
-        for dns2 in (sw1,sw2):
-            if dns != dns2:
-                #should only have one ip.....
-                print (dns + "  " + str(c(dns))) 
-                nic,ip = next(c(dns).get_ips()).popitem()
-                echo = 'echo nameserver %s >> /etc/resolv.conf' % ip
-                #add the other nameserver to resolv.conf
-                #we are using subprocess here as we have a complicated command, " and ' abound
-                subprocess.check_call(['docker', 'exec', dns, 'bash', '-c', echo])
-
-    #setup inet, just making sure we are in the root ns
-    ns_root.enter_ns()
+	#here we fixup dns by adding the other dns servers ip to /etc/resolv.conf
+	for dns in ['sw1', 'sw2']:
+		for dns2 in (sw1,sw2):
+			if dns != dns2:
+		  #should only have one ip.....
+				print (dns + "  " + str(c(dns))) 
+				nic,ip = next(c(dns).get_ips()).popitem()
+				echo = 'echo nameserver %s >> /etc/resolv.conf' % ip
+			#add the other nameserver to resolv.conf
+			#we are using subprocess here as we have a complicated command, " and ' abound
+				subprocess.check_call(['docker', 'exec', dns, 'bash', '-c', echo])
+		#setup inet, just making sure we are in the root ns
+	ns_root.enter_ns()
     #rename our interface and move it into inet
     #r('ip link set $h_if down')
     #r('ip link set $h_if name root')
     #r('ip link set root netns inet')
 
     #connect host to sw1 - hardcoding is bad
-    nic = c('sw1').connect(ns_root)
+	nic = c('sw1').connect(ns_root)
     #dropping in to ns to attach interface to bridge
-    c('sw1').enter_ns()
+	c('sw1').enter_ns()
 		###########################
-    r('brctl addif br0 $nic')
-    r('ip link set $nic up')
+	r('brctl addif br0 $nic')
+	r('ip link set $nic up')
 
     ########################### 
-    ns_root.enter_ns()
+	ns_root.enter_ns()
 
     #ensure network manager doesn't mess with anything
-    r('service NetworkManager stop')
-    r('ip link set $nic name 34334_lab')
+	r('service NetworkManager stop')
+	r('ip link set $nic name 34334_lab')
     #p = Process(target=r, args=('dhclient -v w4sp_lab',))
     #p.start()
 
@@ -185,19 +193,19 @@ def setup_network_routing(h_if):
     ###r('ip netns exec router1 ip link set router1_0 up')
     #r('ip netns exec router1 ip addr add 192.168.100.1/24 dev router1_0')
 
-    r('ip netns exec router1 dhclient -v router1_0')
+	r('ip netns exec router1 dhclient -v router1_0')
 
-    r('dhclient -v 34334_lab')
+	r('dhclient -v 34334_lab')
     
     #c('inet').enter_ns()
     ###############################################
      
     #add the routes to the other network
     #hardcoding since I am lazy
-    other_net = net_1['subnet'].strip('/24')
-    other_gw = net_2['subnet'].strip('0/24') + '1'
+	other_net = net_1['subnet'].strip('/24')
+	other_gw = net_2['subnet'].strip('0/24') + '1'
 
-    dfgw_set = False
+	dfgw_set = False
 
     #while not dfgw_set:
     #    for ips in c('inet').get_ips():
@@ -208,14 +216,13 @@ def setup_network_routing(h_if):
     #############################################
     #c('inet').exit_ns()
 
-    """
-    try:
-        r('ping -c 2 192.100.200.1')
-
-    except:
-        print('[*] Bad network generated, start over')
-        setup_network2(h_if)
-    """
+	"""
+	try:
+		r('ping -c 2 192.100.200.1')
+	except:
+		print('[*] Bad network generated, start over')
+		setup_network2(h_if)
+	"""
 
 
 def setup_firewall(h_if):
