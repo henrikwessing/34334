@@ -143,6 +143,7 @@
               	.always(function(data) {
 		              $('button#setuprouting').text(data);
 		              $.getJSON('getnet', redrawAll);
+		              $('#setupmodal').modal('hide')
               });              
               
             });
@@ -156,6 +157,7 @@
  	            	.always(function(data){
  	            		$('button#setupfirewall').text('Firewall Lab');
  	            		$.getJSON('getnet', redrawAll);})
+ 	            		$('#shutdownmodal').modal('hide')
 
             });
         });

@@ -54,57 +54,16 @@ def setup_network_routing(h_if):
 		docker_clean()
 
 	net = { 'nodes' : [{'router' : ['router1','router2','router3','router4']},
-									 {'switch' : ['sw1']},
+									 {'switch' : ['sw']},
 									 {'base'   : ['host1','host2','host3','host4']}
 									]}
 	for nodetypes in net['nodes']:
-		print("Available nodetypes")
-		print(nodetypes)
 		for nodetype in nodetypes.keys():
 			image = '34334:'+nodetype
 			for node in nodetypes[nodetype]:
 				print("Establish "+ node +" of type "+nodetype)
 				if not c(node):
 					ns_root.register_ns(node, image)
-
-    
-    
-    #net_1 = {'subnet' : '192.168.100.0/24',
-    #            'hubs' : [
-		#    {'switch' : ['sw1'],
-		#	'clients' : [ {'router' : ['router1']}  ]
-    #             }]                   
-    #        }
-
-#    net_2 = {'subnet' : '10.1.4.0/24',
- #               'hubs' : [
-  #                  {'switch' : ['sw2'],
-   #                     'clients' : [
-    #                        {'router' : {[['router1']}, {'router' : ['router4']}
-     #                   ]
-      #              }
-       #         ]
-        #    }
-
-
-    #create_netnew(net)
-    #create_netx(net_2) 
-    
-    ###r('ip netns exec router1 ip link set router1_1 name router1_14')
-    ###r('ip netns exec router1 ip link set router1_14 up')
-
-    ###r('ip netns exec router4 ip link set router4_0 name router4_11')
-    ###r('ip netns exec router4 ip link set router4_11 up')
-
-
-
-    #image = '34334:router'
-    #name = 'router2'
-
-#    name = 'router3'
- #   if not c(name):
-  #    ns_root.register_ns(name, image)
-
 
 	connect_router(1,2,'1_2')
 	connect_router(2,4,'2_4')
@@ -114,53 +73,84 @@ def setup_network_routing(h_if):
   # Select config file and start service in router 1 and 2
 	for i in range(2):
 		k=str(i+1)
-		r('docker exec -ti router%s sudo mv /etc/quagga/ripd%s.conf /etc/quagga/ripd.conf' % (k,k))
-		r('docker exec -ti router%s sudo mv /etc/quagga/zebra%s.conf /etc/quagga/zebra.conf' % (k,k))
-		r('docker exec -ti router%s sudo service quagga start' % k)
+		r('docker exec -ti router%s mv /etc/quagga/ripd%s.conf /etc/quagga/ripd.conf' % (k,k))
+		r('docker exec -ti router%s mv /etc/quagga/zebra%s.conf /etc/quagga/zebra.conf' % (k,k))
+		r('docker exec -ti router%s service quagga start' % k)
 
-   
-
-# Creating hosts as base images and connect
-	image = '34334:base'
+  # Connecting hosts to routers
 	for i in range(4):
 		k = str(i+1)
 		name = 'host' + k
-		if not c(name):
-			ns_root.register_ns(name, image)
-			rname = 'router%s' % k
-			nic = c(name).connect(c(rname))
-			r('ip netns exec '+name+' ip link set '+nic+' name h_'+k) 
-			r('ip netns exec '+rname+' ip link set '+nic+' name h_'+k) 
-			r('ip netns exec '+name+' ip addr add 192.168.'+k+'.1'+k+'/24 dev h_'+k)
-			r('ip netns exec '+name+' ip link set h_'+k+' up')
-			r('ip netns exec '+rname+' ip link set h_'+k+' up')
-			r('ip netns exec %s route add default gw 192.168.%s.%s' % (name,k,k))
+		rname = 'router%s' % k
+		nic = c(name).connect(c(rname))
+		r('ip netns exec '+name+' ip link set '+nic+' name h_'+k) 
+		r('ip netns exec '+rname+' ip link set '+nic+' name h_'+k) 
+		r('ip netns exec '+name+' ip addr add 192.168.'+k+'.1'+k+'/24 dev h_'+k)
+		r('ip netns exec '+name+' ip link set h_'+k+' up')
+		r('ip netns exec '+rname+' ip link set h_'+k+' up')
+		r('ip netns exec %s route add default gw 192.168.%s.%s' % (name,k,k))
+	
+	#Adding bridge in switch
+	c('sw').enter_ns()
+	r('brctl addbr br0')	
+	r('ip link set br0 up')
+	
+	#Connecting switch to router 1 and router 4
+	name = 'sw'
+	rname = 'router1'
+	interface = 'r_1'
+	rinterface = 'r_1_4'
+	iprouter = '10.1.4.1/24'
+	nic = c(name).connect(c(rname))
+	r('ip netns exec '+name+' ip link set '+nic+' name '+interface) 
+	r('ip netns exec '+rname+' ip link set '+nic+' name '+rinterface) 
+	r('ip netns exec '+rname+' ip addr add '+iprouter+' dev '+rinterface)
+	r('ip netns exec '+name+' ip link set '+interface+' up')
+	r('ip netns exec '+rname+' ip link set '+rinterface+' up')
+	r('brctl addif br0 $interface')
+
+	name = 'sw'
+	rname = 'router4'
+	interface = 'r_4'
+	rinterface = 'r_1_4'
+	iprouter = '10.1.4.4/24'
+	nic = c(name).connect(c(rname))
+	r('ip netns exec '+name+' ip link set '+nic+' name '+interface) 
+	r('ip netns exec '+rname+' ip link set '+nic+' name '+rinterface) 
+	r('ip netns exec '+rname+' ip addr add '+iprouter+' dev '+rinterface)
+	r('ip netns exec '+name+' ip link set '+interface+' up')
+	r('ip netns exec '+rname+' ip link set '+rinterface+' up')
+	r('brctl addif br0 $interface')
+	
+		
+	#Connecting kali to router 1
+	nic = c('router1').connect(ns_root)
+
  
-    # Start SSH service in each router
+   # Start SSH service in each router
 	for i in range(4):
 		r('docker exec router%s service ssh start' % str(i+1)) 
 
   
 
-    #new_gw = setup_inet('inet', h_if, net_1['subnet'])
-
-    #we are going to assume we are only dealing with one hub
-    #yes....this is gross, maybe make a convenience function
-    #this gets 'sw1' for example in net_1
-	sw1 = [net_1['hubs'][0][x] for x in net_2['hubs'][0].keys() if x != 'clients'][0][0]
-	sw2 = [net_2['hubs'][0][x] for x in net_2['hubs'][0].keys() if x != 'clients'][0][0]
+  #new_gw = setup_inet('inet', h_if, net_1['subnet'])
+  #we are going to assume we are only dealing with one hub
+  #yes....this is gross, maybe make a convenience function
+  #this gets 'sw1' for example in net_1
+	#sw1 = [net_1['hubs'][0][x] for x in net_2['hubs'][0].keys() if x != 'clients'][0][0]
+	#sw2 = [net_2['hubs'][0][x] for x in net_2['hubs'][0].keys() if x != 'clients'][0][0]
 
 	#here we fixup dns by adding the other dns servers ip to /etc/resolv.conf
-	for dns in ['sw1', 'sw2']:
-		for dns2 in (sw1,sw2):
-			if dns != dns2:
+	#or dns in ['sw1', 'sw2']:
+	#	for dns2 in (sw1,sw2):
+	#		if dns != dns2:
 		  #should only have one ip.....
-				print (dns + "  " + str(c(dns))) 
-				nic,ip = next(c(dns).get_ips()).popitem()
-				echo = 'echo nameserver %s >> /etc/resolv.conf' % ip
+		#		print (dns + "  " + str(c(dns))) 
+		#		nic,ip = next(c(dns).get_ips()).popitem()
+			#	echo = 'echo nameserver %s >> /etc/resolv.conf' % ip
 			#add the other nameserver to resolv.conf
 			#we are using subprocess here as we have a complicated command, " and ' abound
-				subprocess.check_call(['docker', 'exec', dns, 'bash', '-c', echo])
+				#subprocess.check_call(['docker', 'exec', dns, 'bash', '-c', echo])
 		#setup inet, just making sure we are in the root ns
 	ns_root.enter_ns()
     #rename our interface and move it into inet
@@ -169,12 +159,11 @@ def setup_network_routing(h_if):
     #r('ip link set root netns inet')
 
     #connect host to sw1 - hardcoding is bad
-	nic = c('sw1').connect(ns_root)
+	
     #dropping in to ns to attach interface to bridge
-	c('sw1').enter_ns()
-		###########################
-	r('brctl addif br0 $nic')
-	r('ip link set $nic up')
+	
+	
+	
 
     ########################### 
 	ns_root.enter_ns()
