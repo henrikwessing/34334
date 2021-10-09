@@ -5,8 +5,8 @@ RUN apt-get install -y lldpd quagga openssh-server
 RUN apt-get install -y geany nano mousepad
 
 #add the quagga scripts
-ADD daemons /etc/quagga/daemons
 USER quagga
+ADD daemons /etc/quagga/daemons
 ADD ospfd.conf /etc/quagga/ospfd.conf
 ADD zebra*.conf /etc/quagga/
 ADD ripd*.conf /etc/quagga/

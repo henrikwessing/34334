@@ -154,7 +154,7 @@ def getnet():
         tmp_popup = ''
         for ips in ns.get_ips():
             # { 'nic' : ip }
-            tmp_popup += '%s : %s <br>' % ips.popitem()
+            tmp_popup += '%s : %s \n' % ips.popitem()
 
         tmp['title'] = tmp_popup
         data['nodes'].append(tmp)

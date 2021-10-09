@@ -318,8 +318,6 @@ def connect_router(first, second, net):
     r('ip netns exec %s ip link set %s up' % (routerA, interface))
     r('ip netns exec %s ip link set %s up' % (routerB, interface))
 
-
-
     c(routerA).enter_ns()
     print('Setting interfaces on ' + routerA)
     ###r('ip link set $nic name $interface')

@@ -70,13 +70,7 @@ def setup_network_routing(h_if):
 	connect_router(4,3,'3_4')
 	connect_router(3,1,'1_3')
   
-  # Select config file and start service in router 1 and 2
-	for i in range(2):
-		k=str(i+1)
-		r('docker exec -ti router%s mv /etc/quagga/ripd%s.conf /etc/quagga/ripd.conf' % (k,k))
-		r('docker exec -ti router%s mv /etc/quagga/zebra%s.conf /etc/quagga/zebra.conf' % (k,k))
-		r('docker exec -ti router%s service quagga start' % k)
-
+  
   # Connecting hosts to routers
 	for i in range(4):
 		k = str(i+1)
@@ -104,10 +98,10 @@ def setup_network_routing(h_if):
 	nic = c(name).connect(c(rname))
 	r('ip netns exec '+name+' ip link set '+nic+' name '+interface) 
 	r('ip netns exec '+rname+' ip link set '+nic+' name '+rinterface) 
-	r('ip netns exec '+rname+' ip addr add '+iprouter+' dev '+rinterface)
+	#r('ip netns exec '+rname+' ip addr add '+iprouter+' dev '+rinterface)
 	r('ip netns exec '+name+' ip link set '+interface+' up')
 	r('ip netns exec '+rname+' ip link set '+rinterface+' up')
-	r('brctl addif br0 $interface')
+	r('ip netns exec '+name+' brctl addif br0 $interface')
 
 	name = 'sw'
 	rname = 'router4'
@@ -117,14 +111,24 @@ def setup_network_routing(h_if):
 	nic = c(name).connect(c(rname))
 	r('ip netns exec '+name+' ip link set '+nic+' name '+interface) 
 	r('ip netns exec '+rname+' ip link set '+nic+' name '+rinterface) 
-	r('ip netns exec '+rname+' ip addr add '+iprouter+' dev '+rinterface)
+	#r('ip netns exec '+rname+' ip addr add '+iprouter+' dev '+rinterface)
 	r('ip netns exec '+name+' ip link set '+interface+' up')
 	r('ip netns exec '+rname+' ip link set '+rinterface+' up')
-	r('brctl addif br0 $interface')
+	r('ip netns exec '+name+' brctl addif br0 $interface')
 	
 		
 	#Connecting kali to router 1
 	nic = c('router1').connect(ns_root)
+	
+	# Select config file and start service in router 1 and 2
+	for i in range(2):
+		k=str(i+1)
+		r('docker exec -ti router%s mv /etc/quagga/ripd%s.conf /etc/quagga/ripd.conf' % (k,k))
+		r('docker exec -ti router%s mv /etc/quagga/zebra%s.conf /etc/quagga/zebra.conf' % (k,k))
+		r('docker exec -ti router%s service quagga start' % k)
+
+
+
 
  
    # Start SSH service in each router
@@ -182,17 +186,17 @@ def setup_network_routing(h_if):
     ###r('ip netns exec router1 ip link set router1_0 up')
     #r('ip netns exec router1 ip addr add 192.168.100.1/24 dev router1_0')
 
-	r('ip netns exec router1 dhclient -v router1_0')
+	#r('ip netns exec router1 dhclient -v router1_0')
 
-	r('dhclient -v 34334_lab')
+	#r('dhclient -v 34334_lab')
     
     #c('inet').enter_ns()
     ###############################################
      
     #add the routes to the other network
     #hardcoding since I am lazy
-	other_net = net_1['subnet'].strip('/24')
-	other_gw = net_2['subnet'].strip('0/24') + '1'
+	#other_net = net_1['subnet'].strip('/24')
+	#other_gw = net_2['subnet'].strip('0/24') + '1'
 
 	dfgw_set = False
 
