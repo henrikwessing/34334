@@ -41,15 +41,16 @@ class root_ns(object):
         self.nics = []
         self.ns = []
         self.name = 'root'
+        self.type = ''
         self.pid = '1'
         self.proc_path = '/proc/%s/ns/' % self.pid
 
         self.mnt_fd = open(self.proc_path + 'mnt')
         
         
-    def register_ns(self, name, image):
+    def register_ns(self, name, image, nodetype='default'):
+        self.ns.append(container(name, image, nodetype))
 
-        self.ns.append(container(name, image))
 
     
     def enter_ns(self,ns='net'):
@@ -155,7 +156,6 @@ class root_ns(object):
 
     def connect(self, container):
         """This will create a ethernet connection to another ns"""
-
         #creating a local var for the r() call
         pid = container.pid
 
@@ -164,17 +164,14 @@ class root_ns(object):
         for nic in container.nics:
             tmp_n +=1
 
-        #nicname = self.name + '_' + str(tmp_n)
-        nicname = container.name + '_' + str(tmp_n)
-
-        r('ip link add $nicname type veth peer name tmp')
-        r('ip link set tmp netns $self.pid')
-        r('ip link set $nicname netns $pid')
+#        nicname = container.name + str(tmp_n)
+        nicname = container.name
+        rnicname = self.name
+        r('ip link add $nicname type veth peer name $rnicname')
+        r('ip link set $nicname netns $self.pid')
+        r('ip link set $rnicname netns $pid')
         
         
-        #need to research more, but pretty sure checksum offloading was
-        #screwing up udp packets.....
-        #http://lists.thekelleys.org.uk/pipermail/dnsmasq-discuss/2007q3/001506.html
         #this disables offloading....
         """if self.name != 'root':
             r('ip netns exec $self.name ethtool -K tmp rx off tx off')
@@ -184,7 +181,7 @@ class root_ns(object):
         ###########################################
 
         #rename tmp to match veth peer in other ns
-        r('ip link set dev tmp name $nicname')
+        #r('ip link set dev tmp name $nicname')
         r('ethtool -K $nicname rx off tx off')
 
         self.exit_ns()
@@ -255,10 +252,11 @@ class root_ns(object):
     
 class container(root_ns):
 
-    def __init__(self, name, image):
+    def __init__(self, name, image, nodetype):
 
         self.nics = []
         self.name = name
+        self.type = nodetype
 
         #start the container and record the container id sleeping randomly to try and improve performance at start
         #time.sleep(random.uniform(1,3))

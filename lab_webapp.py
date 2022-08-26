@@ -113,7 +113,6 @@ def buildlab():
 
 	time.sleep(10)
 	print("Nu er vi færdige")
-	webbrowser.open('http://127.0.0.1:5000',new = 0)
 	Process.terminate
 
 # use decorators to link the function to a url

@@ -7,6 +7,7 @@ import struct
 import time
 import os
 import gdown
+from os import system as sys
 
 
 def check_dumpcap():
@@ -93,8 +94,8 @@ def docker_build(image_path):
 	print(os.getcwd())
 	curdir = os.getcwd()
 	# first we need to build the base image so we can build the rest
-	r('systemctl restart docker')
-	r('docker build -t 34334:base base')
+	sys('systemctl restart docker')
+	sys('docker build -t 34334:base base')
 	# snort image is assumed build with tag 34334:ids
 	for image in ('inet','router','victims','switch'):
 		image_name = '34334:' + image
@@ -103,53 +104,48 @@ def docker_build(image_path):
 	os.chdir(orig_dir)
 
 def docker_clean():
+    
     """clean up our mess, this will remove all 34334 related containers
     and will try to cleanup all of the network related stuff"""
+    print("Cleaning docker and network namespaces")
+    if os.system('systemctl is-active docker --quiet')==0:
+        out = r('docker ps -aq').split(b'\n')[:-1]
+        print ("Docker Cleanup")
+        print (out)
+        for c_id in out:
+            r('docker rm -f $c_id')
 
+        for nic in r('ls /sys/class/net').split(b'\n')[:-1]:
+            nic = nic.split(b' ')[0]
+            if nic != b'docker0' and nic != b'eth0' and nic != b'lo' and b'root' not in nic:
+                #try to delete the link, if it fails don't worry about it
+                try:
+                    r('ip link delete $nic')
+                except:
+                    pass
 
-    try: 
-      r('systemctl restart docker')
-    except: 
-      r('systemctl stop docker')
-      time.sleep(5)
-      r('systemctl start docker')
+        for netns in r('ip netns').split(b'\n')[:-1]:
+            r('ip netns delete $netns')
+            print("Cleaning network namespaces")
 
-    out = r('docker ps -aq').split(b'\n')[:-1]
-    print ("Docker Cleanup")
-    print (out)
-    for c_id in out:
-        r('docker rm -f $c_id')
+        #kill old dhclients
+        try:
+            r('pkill dhclient')
+        except:
+            pass
+            
+            #rename root nic to eth0
+            for nic in r('ls /sys/class/net').split(b'\n')[:-1]:
+                nic = nic.split(b' ')[0]
+                if b'root' in nic:
+                    try:
+                        r('ip link set $nic down')
+                        r('ip link set $nic name eth0')
+                    except:
+                        pass
 
-    for nic in r('ifconfig -a').split(b'\n\n')[:-1]:
-        nic = nic.split(b' ')[0]
-        if nic != b'docker0' and nic != b'eth0' and nic != b'lo' and b'root' not in nic:
-            #try to delete the link, if it fails don't worry about it
-            try:
-                r('ip link delete $nic')
-            except:
-                pass
-
-    for netns in r('ip netns').split(b'\n')[:-1]:
-        r('ip netns delete $netns')
-
-    #kill old dhclients
-    try:
-        r('pkill dhclient')
-    except:
-        pass
-
-    #rename root nic to eth0
-    for nic in r('ifconfig -a').split(b'\n\n')[:-1]:
-        nic = nic.split(b' ')[0]
-        if b'root' in nic:
-            try:
-                r('ip link set $nic down')
-                r('ip link set $nic name eth0')
-            except:
-                pass
-
-    r('service NetworkManager start')
-    r('service networking restart')
+        r('service NetworkManager start')
+        r('service networking restart')
   #  r('service docker status')
   #  try: 
   #      r('systemctl restart docker')
