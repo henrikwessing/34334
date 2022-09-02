@@ -6,45 +6,6 @@ from multiprocessing import Process
 from random import randrange
 
 
-def setup_snort(h_if):
-    print("Setting up SNORT environment")
-    try:
-        ns_root.shutdown()
-    except:
-        print('[*] Did not shutdown cleanly, trying again')
-        docker_clean()
-    finally:
-        docker_clean()
-  # Create ids node
-    image = '34334:ids'
-    name = 'snort'
-    if not c(name):
-        ns_root.register_ns(name, image)
-    nic = c(name).connect(ns_root)
-    c(name).enter_ns()
-    r('ip link set $nic up')
-  # Create internet node
-    image = '34334/labs:inet'
-    name = 'inet'
-    if not c(name):
-        ns_root.register_ns(name, image)
-    nic1 = c(name).connect(ns_root)
-    nic2 = c(name).connect(c('snort'))
-    c(name).enter_ns()
-    r('ip link set $nic1 up')
-    r('ip link set $nic2 up')
-    
-
-
-    ns_root.enter_ns()
-    r('service NetworkManager stop')
-    r('ip link set $nic name 34334_lab')
-    r('dhclient -v 34334_lab')   
-    dfgw_set = False
-    
-    new_gw = setup_inet('inet', h_if, '172.0.0.0/24')
-    
-
 def setup_network_routing(h_if):
     try:
         ns_root.shutdown()
@@ -219,8 +180,11 @@ def setup_network_routing(h_if):
     """
 def read_setup(setup):
     f = open('networks/'+setup+'.json')
-    data = json.load(f)
-    return (data.get("nodes"),data.get("bridges"))
+    try:
+        data = json.load(f)
+        return (data.get("nodes"),data.get("bridges"))
+    except:
+        print("Badly formatted configuration file")
 
 def create_nodes(nodes):
     for node in nodes:
@@ -231,7 +195,6 @@ def create_bridges(bridges):
     for bridge in bridges:
         # If 2 adjacencies it is basically a link
         adj = bridge['adjacencies']
-        print(adj)
         adjcount = len(adj)
         if adjcount==2:
             rname = adj.pop()
@@ -243,7 +206,6 @@ def create_bridges(bridges):
         if adjcount > 2:
             # Create switch
             print("Setting up bridge for 3 or more nodes")
-            print(adj)
             bname = bridge['name']
             ns_root.register_ns(bname, '34334:switch','switch')
             c(bname).enter_ns()
@@ -256,20 +218,26 @@ def create_bridges(bridges):
             r('brctl setfd $bname 0')
             c(bname).exit_ns()
             for name in adj:
+                print("Connecting "+bname+" to "+name)
                 nic = c(bname).connect(c(name))      
+                print("Listed nics in " + name + ":")
+                for nic in c(name).nics:
+                    print(nic)
+                print("Listed nics in " + bname + ":")
+                for nic in c(bname).nics:
+                    print(nic)
                 r('ip netns exec $bname ip link set $name up')
                 r('ip netns exec $name ip link set $bname up') 
                 r('ip netns exec $bname brctl addif $bname $name')
                 
 def ip_address(iprange,host):
     prefix = '.'.join(iprange.split('.')[0:3])
-    print(prefix)
     ipaddress = prefix + "." + str(host)
-    print(ipaddress)
     return ipaddress
             
 def set_addresses(bridges):
     # Setting addresses based on json. We assume /24 prefixes and use first available value for gateway
+    print("Setting IP addresses")
     for bridge in bridges:
         bname = bridge['name']
         adj = bridge['adjacencies']
@@ -292,8 +260,9 @@ def set_addresses(bridges):
 
 def set_internet(inetnode, interface, bridge, ip, gw):
     # Moving external connection to interface in docker config.
+    print("Setting up internet via node " + inetnode)
     nic = c(bridge).connect(ns_root)
-    print("Nic name: "+ nic)
+    
     #ensure network manager doesn't mess with anything
     r('ip netns exec $bridge brctl addif $bridge $nic')
     r('ip netns exec $bridge ip link set $nic up')
@@ -308,8 +277,8 @@ def set_internet(inetnode, interface, bridge, ip, gw):
     r('ip link set $interface netns $inetnode')
     r('route add default gw $gw')
     
-    
     c(inetnode).enter_ns()
+        
     inet_nic = bridge
     r('ip link set $interface up')
     # Setting up NAT as inet node
@@ -317,7 +286,7 @@ def set_internet(inetnode, interface, bridge, ip, gw):
     r('iptables -t nat -A POSTROUTING -o $interface -j MASQUERADE')
     r('iptables -A FORWARD -i $interface -o $inet_nic -m state --state RELATED,ESTABLISHED -j ACCEPT')
     r('iptables -A FORWARD -i $inet_nic -o $interface -j ACCEPT')
-    
+    r('docker exec -ti $inetnode echo 1 > /proc/sys/net/ipv4/ip_forward')
             
                 
 def setup_firewall(h_if):
@@ -340,111 +309,20 @@ def setup_firewall(h_if):
         # Connecting to internet via lab. Pretty much hardcoded          
         set_internet('internet',h_if,'internal','192.168.1.100/24','192.168.1.1')
 
-   
-def setup_network(h_if):
-
-    #docker_clean()
-
-    #the key is the image name
-    #net1 = {'sw' : ['sw1'], 'vrrpd' : ['r1', 'r2'],
-    #    'base' : ['vic', 'attacker']}
-
-    #net2 = {'sw' : ['sw2'], 'vrrpd' : ['r1', 'r2'],
-    #     'base' : ['inet']}
-
-  
-    net_1 = {'subnet' : '192.100.200.0/24', 
-                'hubs' : [ 
-                    {'switch' : ['sw1'], 
-                        'clients' : [
-                            {'vrrpd' : ['r1', 'r2']}, 
-                            {'victims' : ['vic1', 'vic2', 'vic3']}
-                        ]
-                    }
-                ]
-            }
-  
-    net_2 = {'subnet' : '10.100.200.0/24', 
-                'hubs' : [ 
-                    {'switch' : ['sw2'], 
-                        'clients' : [
-                            {'vrrpd' : ['r1', 'r2']}, 
-                            {'base' : ['inet']},
-                            {'victims' : ['vic4', 'vic5']}
-                        ]
-                    }
-                ]
-            }
-
-
-    net_3 = {'subnet' : '10.1.1.0/24',
-                'hubs' : [ 
-                    {'sw' : ['sw3'],
-                        'clients' : [
-                            {'base' : ['vic6', 'vic7', 'inet']},
-                            {'vrrpd' : ['r3', 'r4']}
-
-                         ]
-                     }
-                ]
-            }
-
-    create_net(net_1)
-    create_net(net_2)
-    #create_net(net_3)    
- 
-    #hardcoding this for now...I know these are the machines I want to run vrrp
-    setup_vrrp(['r1', 'r2'])
-
-    new_gw = setup_inet('inet', h_if, net_1['subnet'])
-
-    #now it is time to setup routes
-    #hardcoding this logic for now :(
-    for router in ['r1', 'r2']:
-       
-        c(router).enter_ns()
-        #######################################
- 
-        r('ip route add default via $new_gw')
+def setup_routing(h_if):
+    try:
+        ns_root.shutdown()
+    except:
+        print('[*] Did not shutdown cleanly, trying again')
+        docker_clean()
+    finally:
+        docker_clean()
+        # Stop IP forwarding on Debian
+        r('sysctl -w net.ipv4.ip_forward=0')    
+        # Reading network setup
+        (nodes,bridges) = read_setup("routing")
+        # Create containers
+        create_nodes(nodes)
+        # Connecting all dockers in bridges
+        create_bridges(bridges)
     
-        for nic in c(router).nics:
-            #we are going to add an artificial delay here
-            #add 1ms delay with a 5ms jitter
-            r('tc qdisc add dev $nic root netem delay 1ms 5ms')
-    
-        ########################################
-        c(router).exit_ns()
- 
-    #hardcoding is bad mmmkay
-    switches = ['sw1', 'sw2']
-    for dns in switches:
-        for dns2 in switches:
-            if dns != dns2:
-                #should only have one ip.....
-                nic,ip = next(c(dns2).get_ips()).popitem()
-                echo = 'echo nameserver %s >> /etc/resolv.conf' % ip
-                #add the other nameserver to resolv.conf
-                #we are using subprocess here as we have a complicated command, " and ' abound
-                subprocess.check_call(['docker', 'exec', dns, 'bash', '-c', echo])
-
-        #add the upstream google dns and localhost server
-        subprocess.check_call(['docker', 'exec', dns, 'bash', '-c', 'echo nameserver 8.8.8.8 >> /etc/resolv.conf'])
-
-    #connect host to sw1 - hardcoding is bad
-    nic = c('sw1').connect(ns_root)
-    #dropping in to ns to attach interface to bridge
-    c('sw1').enter_ns()
-    ###########################
-
-    r('brctl addif br0 $nic')
-    r('ip link set $nic up')
-
-    ########################### 
-    ns_root.enter_ns()
-
-    #ensure network manager doesn't mess with anything
-    r('service network-manager stop')
-    r('ip link set $nic name 34334_lab')
-    r('dhclient -v 34334_lab')    
-
-

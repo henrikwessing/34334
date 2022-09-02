@@ -1,0 +1,26 @@
+{"nodes" : [
+    {"name" : "router1", "image" : "34334:router"},
+    {"name" : "router2", "image" : "34334:router"},
+    {"name" : "router3"  , "image" : "34334:router"},
+    {"name" : "router4"  , "image" : "34334:router"}
+     ],
+ "bridges" : [
+    {"name" : "r12", "adjacencies" : ["router1", "router2"],
+     "network" : "10.1.2.0"
+    },
+    {"name" : "r13", "adjacencies" : ["router1", "router3"],
+     "network" : "10.1.3.0"
+    },
+    {"name" : "r14", "adjacencies" : ["router1", "router4"],
+     "network" : "10.1.4.0"
+    },
+    {"name" : "r24", "adjacencies" : ["router2", "router4"],
+     "network" : "10.2.4.0"
+    },
+    {"name" : "r34", "adjacencies" : ["router3", "router4"],
+     "network" : "10.3.4.0"
+    }
+
+
+ ]
+}

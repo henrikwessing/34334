@@ -22,6 +22,7 @@
    </div>
   </div>
 	<script>
+	$.ajaxSetup({timeout:20000});
     var network;
     var nodes = new vis.DataSet();
     var edges = new vis.DataSet();
@@ -85,8 +86,8 @@
             fields: ['label'],
             });
 
-        //go through to see what is running
-        console.log(items);
+  /*      //go through to see what is running
+  //      console.log(items);
         $.each(items, function(index, value) {
             console.log(value.label);
             if (value.label == "vic3") {
@@ -101,10 +102,10 @@
                 is_sploit = true;
             };
 
-        });
+        });*/
 
 
-        console.log(is_ips);
+  /*      console.log(is_ips);
         {% for lab in ('vic2', 'mitm', 'ips', 'sploit', 'elk', 'wifi') %}
             if (nodes.length > 2 && !({{ 'is_' ~ lab }})) {
                 $("{{'button#' ~ lab}}").prop('disabled', false);
@@ -115,7 +116,7 @@
 
         {% endfor %}
 
-
+*/
 
         network.fit();
         $('#setupmodal').modal('hide');
@@ -126,26 +127,30 @@
 
        $(function() {
            $('button#setupfirewall').click(function(){
-							$('#setupmodal').modal('show');
-              $.get('setupfirewall')
-              	.always(function(data) {
-		              $('button#setupfirewall').text(data);
-		              $.getJSON('getnet', redrawAll);
-              });              
-              
-            });
+			$('#setupmodal').modal('show');
+            $.get('setupfirewall', function() {
+                alert("Well done"); 
+            })
+            .done(function() {
+                alert("More success");
+                $('button#setupfirewall').text(data);
+	            $.getJSON('getnet', redrawAll);
+	        })
+		  }); 
+     
         });
         
         $(function() {
            $('button#setuprouting').click(function(){
-							$('#setupmodal').modal('show');
-              $.get('setuprouting')
-              	.always(function(data) {
-		              $('button#setuprouting').text(data);
-		              $.getJSON('getnet', redrawAll);
-		              $('#setupmodal').modal('hide')
-              });              
-              
+             $("#setupmodal").modal("show");
+            $.get("/setuprouting",function(data){
+                //alert('Routing')
+                })
+               	.done(function(data) {
+    		        $("button#setuprouting").text(data);
+    		        $.getJSON("getnet", redrawAll);
+		            $("#setupmodal").modal("hide")
+                });              
             });
         });
 
@@ -153,7 +158,7 @@
        $(function() {
            $("button#shutdown").click(function(){
               $('#shutdownmodal').modal('show');
- 	            $.get('shutdown')
+ 	            $.get("shutdown")
  	            	.always(function(data){
  	            		$('button#setupfirewall').text('Firewall Lab');
  	            		$.getJSON('getnet', redrawAll);})

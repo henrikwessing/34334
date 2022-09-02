@@ -154,19 +154,25 @@ class root_ns(object):
         self.enter_ns()
 
 
-    def connect(self, container):
+    def connect(self, container, rnicname = '', nicname =''):
         """This will create a ethernet connection to another ns"""
         #creating a local var for the r() call
         pid = container.pid
 
         #count up our nics for naming scheme of container name + _number
-        tmp_n = 0
+        tmp_n = 0;tmp_str=''
+        print("Nics in container " + container.name)
         for nic in container.nics:
             tmp_n +=1
+            tmp_str=str(tmp_n)
+            print(nic)
+            
 
-#        nicname = container.name + str(tmp_n)
-        nicname = container.name
-        rnicname = self.name
+        #nicname = container.name + str(tmp_n)
+        if nicname == '':
+            nicname = container.name # + tmp_str
+        if rnicname == '': 
+            rnicname = self.name
         r('ip link add $nicname type veth peer name $rnicname')
         r('ip link set $nicname netns $self.pid')
         r('ip link set $rnicname netns $pid')
@@ -178,6 +184,7 @@ class root_ns(object):
             """
 
         self.enter_ns()
+        print("Entering namespace "+self.name)
         ###########################################
 
         #rename tmp to match veth peer in other ns
@@ -188,7 +195,7 @@ class root_ns(object):
 
         #now append the nics to our list and the other containers
         self.nics.append(nicname)
-        container.nics.append(nicname)
+        container.nics.append(rnicname)
         return nicname
 
     def connectbridge(self, bridge):

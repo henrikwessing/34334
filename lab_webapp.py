@@ -9,6 +9,7 @@ import webbrowser
 
 
 #docker handling code
+from lab_app import *
 import lab
 import argparse
 import netifaces
@@ -45,17 +46,26 @@ app.config.from_object(__name__)
 def get_connections():
     """this should return all of the machines that are connected"""
 
-    tmp = []
-
+    done = []
+    
     for ns in lab.ns_root.ns:
-        for nic in ns.nics:
+        print(ns.name + "  " + ns.pid)
+        for nic in ns.nics:    
+            print("-- " + nic)
             if 'root' in nic:
                 yield 1,ns.pid
-            for os in lab.ns_root.ns:
-                if os != ns and nic in os.nics and nic not in tmp:
-                    tmp.append(nic)
-                    print('%s connected %s' % (ns.pid,os.pid))
-                    yield ns.pid,os.pid
+            else:
+                if nic not in done:
+                    os = c(nic).pid
+                    yield ns.pid, os
+        done.append(ns.name)
+   #
+  # for os in lab.ns_root.ns:
+#                print("----  " + os.name)
+#                if os =! ns and nic in os.nics and nic not in tmp:
+#                    
+#                    print('%s connected %s' % (ns.pid,os.pid))
+#                    yield ns.pid,os.pid
 
 
 def psef(grep):
@@ -146,29 +156,42 @@ def getnet():
         tmp = {}
         tmp['id'] = ns.pid
         tmp['label'] = ns.name
+      #  tmp['type'] = ns.type
 
-        if ns.name == 'inet':
+        if ns.name=='internet':
             tmp['color'] = 'rgb(0,255,0)'
-
+        
+        
         tmp_popup = ''
         for ips in ns.get_ips():
             # { 'nic' : ip }
             tmp_popup += '%s : %s \n' % ips.popitem()
 
+
+
         tmp['title'] = tmp_popup
+
+        if ns.type == 'switch':
+            tmp['label']= 'sw'
+            tmp['color']= 'blue'
+            tmp['title']='Switch: '+ns.name
+
+
         data['nodes'].append(tmp)
 
     tmp_popup = ''
     #now add the root ns
     for ips in lab.ns_root.get_ips():
-        tmp_popup += '%s : %s <br>' % ips.popitem()
+        tmp_popup += '%s : %s \n' % ips.popitem()
 
-    data['nodes'].append({'id' : 1, 'label' : 'kali', 'color' : 'rgb(204,0,0)', 'title' : tmp_popup})
+    data['nodes'].append({'id' : 1, 'label' : 'localhost', 'color' : 'rgb(204,0,0)', 'title' : tmp_popup})
 
     for f,t in get_connections():
+        print("from: " + str(f) + "    To: " + str(t))
         tmp = {}
         tmp['from'] = f
         tmp['to'] = t
+        tmp['color'] = 'grey'
         data['edges'].append(tmp)
 
     print(data)
@@ -192,19 +215,20 @@ def setupfw():
 
 @app.route('/setuprouting')
 def setuprouting():
+    print("Setting up routing environment")
     """start the routing network"""
 
     if len(NSROOT.ns) >= 1:
-        return 'REFRESH'
+        return 'Opdater Lab'
 
     try:
-        lab.setup_network_routing('eth0')
-        time.sleep(3)
-        return 'REFRESH'
+        lab.setup_routing('eth0')
+        #time.sleep(3)
+        return 'Opdater Lab'
 
     except:
         print(traceback.format_exc())
-        return 'ERROR'
+        return 'Fejl'
 
 
 
