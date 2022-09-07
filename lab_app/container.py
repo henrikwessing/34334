@@ -156,6 +156,7 @@ class root_ns(object):
 
     def connect(self, container, rnicname = '', nicname =''):
         """This will create a ethernet connection to another ns"""
+        print("Connecting " + self.name + " (self) to " + container.name + " (remote)")
         #creating a local var for the r() call
         pid = container.pid
 

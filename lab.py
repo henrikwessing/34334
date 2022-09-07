@@ -235,6 +235,20 @@ def ip_address(iprange,host):
     prefix = '.'.join(iprange.split('.')[0:3])
     ipaddress = prefix + "." + str(host)
     return ipaddress
+
+def recode_addresses(bridge):
+    iprange = bridge.get("network")
+    hostid = 1
+    addresstable = []
+    for node in bridge["adjacencies"]:
+        name = node.split(";")[0]
+    try:
+        hostid = int(node.split(";")[1])
+    except:
+        pass
+    addr = {"node" : name, "ip" : ip_address(iprange,hostid) }
+    addresstable.append(addr)
+    hostid = hostid+1
             
 def set_addresses(bridges):
     # Setting addresses based on json. We assume /24 prefixes and use first available value for gateway unless specified
@@ -260,8 +274,9 @@ def set_addresses(bridges):
             nodes.append((name,spechost))
         print(nodes)
         try:
-            gw = bridge['gateway']
+            gw = bridge["gateway"]
             # Search for specified ip
+            print("Searching for gateway named "+gw)
             gwhost = [index for (index, a_tuple) in enumerate(nodes) if a_tuple[0]==gw]
             print("Host ID for gateway if specified "+str(gwhost))
             
@@ -277,7 +292,7 @@ def set_addresses(bridges):
             r('ip netns exec $name ip addr add $ip dev $bname')
             hostid = hostid + 1
             if gw != '':
-                r('ip netns exec $name route add default gw $gwip')
+                r('ip netns exec $name ip route add default via $gwip')
 
 def set_internet(inetnode, interface, bridge, ip, gw):
     # Moving external connection to interface in docker config.
@@ -291,12 +306,13 @@ def set_internet(inetnode, interface, bridge, ip, gw):
 
     r('service NetworkManager stop')
     # Connecting root to lab
+    print("Connecting localhost to lab")
     r('ip link set $bridge name 34334_lab')
     r('ip link set 34334_lab up')
     r('ip addr add $ip dev 34334_lab')
     # Moving external interface to defined lab node
     r('ip link set $interface netns $inetnode')
-    r('route add default gw $gw')
+    r('ip route add default via $gw')
     
     c(inetnode).enter_ns()
         
