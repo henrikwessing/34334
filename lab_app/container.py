@@ -173,8 +173,8 @@ class root_ns(object):
             nicname = container.name # + tmp_str
         if rnicname == '': 
             rnicname = self.name
-        r('ip link add $nicname type veth peer name $rnicname')
-        r('ip link set $nicname netns $self.pid')
+        r('ip link add $rnicname type veth peer name tmp')
+        r('ip link set tmp netns $self.pid')
         r('ip link set $rnicname netns $pid')
         
         
@@ -188,8 +188,9 @@ class root_ns(object):
         ###########################################
 
         #rename tmp to match veth peer in other ns
-        #r('ip link set dev tmp name $nicname')
+        r('ip link set dev tmp name $nicname')
         r('ethtool -K $nicname rx off tx off')
+        
 
         self.exit_ns()
 

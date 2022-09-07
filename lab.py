@@ -196,17 +196,17 @@ def create_bridges(bridges):
         # If 2 adjacencies it is basically a link
         adj = bridge['adjacencies']
         adjcount = len(adj)
+        bname = bridge['name']
         if adjcount==2:
-            rname = adj.pop()
-            name = adj.pop()
+            rname = adj[0].split(";")[0]
+            name = adj[1].split(";")[0]
             print("Connecting " +name + " to " + rname)
-            nic = c(name).connect(c(rname))
-            r('ip netns exec $name ip link set $nic up')
-            r('ip netns exec $rname ip link set $name up')
+            nic = c(name).connect(c(rname),bname, bname)
+            r('ip netns exec $name ip link set $bname up')
+            r('ip netns exec $rname ip link set $bname up')
         if adjcount > 2:
             # Create switch
             print("Setting up bridge for 3 or more nodes")
-            bname = bridge['name']
             ns_root.register_ns(bname, '34334:switch','switch')
             c(bname).enter_ns()
             # Adding bridge in ns
@@ -217,7 +217,8 @@ def create_bridges(bridges):
             r('brctl setageing $bname 0')
             r('brctl setfd $bname 0')
             c(bname).exit_ns()
-            for name in adj:
+            for node in adj:
+                name=node.split(";")[0]
                 print("Connecting "+bname+" to "+name)
                 nic = c(bname).connect(c(name))      
                 print("Listed nics in " + name + ":")
@@ -236,18 +237,38 @@ def ip_address(iprange,host):
     return ipaddress
             
 def set_addresses(bridges):
-    # Setting addresses based on json. We assume /24 prefixes and use first available value for gateway
+    # Setting addresses based on json. We assume /24 prefixes and use first available value for gateway unless specified
     print("Setting IP addresses")
     for bridge in bridges:
         bname = bridge['name']
         adj = bridge['adjacencies']
-        hostid = 1
+        # Create dict with names and host id
+        hostid = 1 # Used when not specfied. Cannot mix automatic and static addressing
+        nodes = []
+        name=""
+        print(adj)
+        for node in adj:
+            print(node)
+            nodeid = node.split(";")
+            print(nodeid)
+            name = nodeid[0]
+            try:
+                spechost = nodeid[1]
+                print("I Try: "+nodeid)
+            except:
+                spechost = 0
+            nodes.append((name,spechost))
+        print(nodes)
         try:
             gw = bridge['gateway']
+            # Search for specified ip
+            gwhost = [index for (index, a_tuple) in enumerate(nodes) if a_tuple[0]==gw]
+            print("Host ID for gateway if specified "+str(gwhost))
+            
             gwip = ip_address(bridge['network'],hostid)
             ip = gwip + "/24"
-            r('ip netns exec internet ip addr add $ip dev $bname')
-            hostid = hostid +1
+            r('ip netns exec $gateway ip addr add $ip dev $bname')
+
             adj.remove(gw)
         except:
             gw = ''
@@ -286,7 +307,7 @@ def set_internet(inetnode, interface, bridge, ip, gw):
     r('iptables -t nat -A POSTROUTING -o $interface -j MASQUERADE')
     r('iptables -A FORWARD -i $interface -o $inet_nic -m state --state RELATED,ESTABLISHED -j ACCEPT')
     r('iptables -A FORWARD -i $inet_nic -o $interface -j ACCEPT')
-    r('docker exec -ti $inetnode echo 1 > /proc/sys/net/ipv4/ip_forward')
+    r('docker exec --privileged -ti $inetnode sysctl net.ipv4.ip_forward=1')
             
                 
 def setup_firewall(h_if):
@@ -325,4 +346,5 @@ def setup_routing(h_if):
         create_nodes(nodes)
         # Connecting all dockers in bridges
         create_bridges(bridges)
+        set_addresses(bridges)  
     

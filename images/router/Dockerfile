@@ -4,6 +4,7 @@ FROM 34334:base
 RUN apt-get install -y lldpd quagga openssh-server
 RUN apt-get install -y geany nano mousepad
 
+
 #add the quagga scripts
 USER quagga
 ADD daemons /etc/quagga/daemons
