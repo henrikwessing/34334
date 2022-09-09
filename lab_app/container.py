@@ -156,17 +156,17 @@ class root_ns(object):
 
     def connect(self, container, rnicname = '', nicname =''):
         """This will create a ethernet connection to another ns"""
-        print("Connecting " + self.name + " (self) to " + container.name + " (remote)")
+    #    print("Connecting " + self.name + " (self) to " + container.name + " (remote)")
         #creating a local var for the r() call
         pid = container.pid
 
         #count up our nics for naming scheme of container name + _number
-        tmp_n = 0;tmp_str=''
-        print("Nics in container " + container.name)
+        tmp_n = 0;tmp_str='0'
+     #   print("Nics in container " + container.name)
         for nic in container.nics:
             tmp_n +=1
             tmp_str=str(tmp_n)
-            print(nic)
+      #      print(nic)
             
 
         #nicname = container.name + str(tmp_n)
@@ -185,7 +185,7 @@ class root_ns(object):
             """
 
         self.enter_ns()
-        print("Entering namespace "+self.name)
+       # print("Entering namespace "+self.name)
         ###########################################
 
         #rename tmp to match veth peer in other ns
@@ -196,8 +196,8 @@ class root_ns(object):
         self.exit_ns()
 
         #now append the nics to our list and the other containers
-        self.nics.append(nicname)
-        container.nics.append(rnicname)
+        self.nics.append(container.name)
+        container.nics.append(self.name)
         return nicname
 
     def connectbridge(self, bridge):
@@ -269,7 +269,7 @@ class container(root_ns):
 
         #start the container and record the container id sleeping randomly to try and improve performance at start
         #time.sleep(random.uniform(1,3))
-        print("----DOCKER COMMAND----")
+  #      print("----DOCKER COMMAND----")
         print("docker run -id --privileged --name $name --hostname $name --net=none $image")
         self.id = r('docker run -id --privileged --name $name --hostname $name --net=none $image').strip()
         self.pid = r("docker inspect -f '{{.State.Pid}}' $self.id").strip().strip(b"'")
@@ -307,6 +307,7 @@ class container(root_ns):
         """stop and delete the container"""
 
         r('docker rm -f $self.id')
+        print("Delete container _del_ was called")
 
         try:
             #kill container and remove if it isn't a 'root' container

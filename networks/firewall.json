@@ -4,7 +4,7 @@
     {"name" : "internet"  , "image" : "34334:inet"}
      ],
  "bridges" : [
-    {"name" : "internal", "adjacencies" : ["snort", "server","internet"],
+    {"name" : "internal", "adjacencies" : ["internet", "server","snort"],
      "network" : "192.168.1.0", "gateway":"internet"
     }
  ]

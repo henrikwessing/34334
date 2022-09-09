@@ -14,7 +14,7 @@ RUN sed 's/files dns/wins files dns/' /etc/nsswitch.conf >> /etc/nsswitch.conf
 ADD start_vic.py /start_vic.py
 #add configs for supervisord
 ADD supervisor_vics.conf /etc/supervisor/conf.d/supervisor_vics.conf
-RUN service nginx start
+#CMD service nginx start
 
 
 

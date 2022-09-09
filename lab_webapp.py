@@ -49,9 +49,9 @@ def get_connections():
     done = []
     
     for ns in lab.ns_root.ns:
-        print(ns.name + "  " + ns.pid)
+  #      print(ns.name + "  " + ns.pid)
         for nic in ns.nics:    
-            print("-- " + nic)
+   #         print("-- " + nic)
             if 'root' in nic:
                 yield 1,ns.pid
             else:
@@ -122,7 +122,7 @@ def buildlab():
     #lab.docker_clean()
 
 	time.sleep(10)
-	print("Nu er vi færdige")
+	print("Ready to serve")
 	Process.terminate
 
 # use decorators to link the function to a url
@@ -187,20 +187,19 @@ def getnet():
     data['nodes'].append({'id' : 1, 'label' : 'localhost', 'color' : 'rgb(204,0,0)', 'title' : tmp_popup})
 
     for f,t in get_connections():
-        print("from: " + str(f) + "    To: " + str(t))
         tmp = {}
         tmp['from'] = f
         tmp['to'] = t
         tmp['color'] = 'grey'
         data['edges'].append(tmp)
 
-    print(data)
+ #   print(data)
     return jsonify(**data)
 
 
 @app.route('/setupfirewall')
 def setupfw():
-    print("Nu er vi i Setup Firewall")
+    print("Setting up firewall environment")
     """start the firewall network"""
     if len(NSROOT.ns) >= 1:
         return 'Opdater Lab'

@@ -6,7 +6,9 @@
     {"name" : "host1"  , "image" : "34334:base"},
     {"name" : "host2"  , "image" : "34334:base"},
     {"name" : "host3"  , "image" : "34334:base"},
-    {"name" : "host4"  , "image" : "34334:base"}             
+    {"name" : "host4"  , "image" : "34334:base"},
+    {"name" : "host5"  , "image" : "34334:base"}
+                 
      ],
  "bridges" : [
     {"name" : "r12", "adjacencies" : ["router1", "router2;2"],
@@ -15,7 +17,7 @@
     {"name" : "r13", "adjacencies" : ["router1;1", "router3;3"],
      "network" : "10.1.3.0"
     },
-    {"name" : "r14", "adjacencies" : ["router1;1", "router4;4"],
+    {"name" : "r14", "adjacencies" : ["router1;1", "router4;4", "host5"],
      "network" : "10.1.4.0"
     },
     {"name" : "r24", "adjacencies" : ["router2;2", "router4;4"],
@@ -28,13 +30,13 @@
      "network" : "192.168.1.0", "gateway" : "router1"
     },
     {"name" : "h2", "adjacencies" : ["host2;12", "router2;2"],
-     "network" : "192.168.2.0"
+     "network" : "192.168.2.0", "gateway" : "router2"
     },
     {"name" : "h3", "adjacencies" : ["host3;13", "router3;3"],
-     "network" : "192.168.3.0"
+     "network" : "192.168.3.0", "gateway" : "router3"
     },
     {"name" : "h4", "adjacencies" : ["host4;14", "router4;4"],
-     "network" : "192.168.4.0"
+     "network" : "192.168.4.0", "gateway" : "router4"
 
     }
 

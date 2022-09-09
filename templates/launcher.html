@@ -22,7 +22,7 @@
    </div>
   </div>
 	<script>
-	$.ajaxSetup({timeout:20000});
+	$.ajaxSetup({timeout:0});
     var network;
     var nodes = new vis.DataSet();
     var edges = new vis.DataSet();
@@ -128,43 +128,46 @@
        $(function() {
            $('button#setupfirewall').click(function(){
 			$('#setupmodal').modal('show');
-            $.get('setupfirewall', function() {
-                alert("Well done"); 
+            $.get('/setupfirewall', function(data) {
+                $('#setupmodal').modal('hide')
             })
-            .done(function() {
-                alert("More success");
-                $('button#setupfirewall').text(data);
-	            $.getJSON('getnet', redrawAll);
+            .always(function(data) {
+                $('button#setupfirewall').text("Genstart Firewall Lab");
+	            $.getJSON("getnet", redrawAll);
 	        })
+
 		  }); 
      
         });
         
         $(function() {
            $('button#setuprouting').click(function(){
-             $("#setupmodal").modal("show");
-            $.get("/setuprouting",function(data){
-                //alert('Routing')
+            $('#setupmodal').modal('show');
+            $.get('/setuprouting',function(data){
+		        $('#setupmodal').modal('hide')             
                 })
                	.done(function(data) {
-    		        $("button#setuprouting").text(data);
+               	    $('#setupmodal').modal('hide') ;
+    		        $('button#setuprouting').text("Genstart Routing Lab");
     		        $.getJSON("getnet", redrawAll);
-		            $("#setupmodal").modal("hide")
+
                 });              
             });
         });
 
 
        $(function() {
-           $("button#shutdown").click(function(){
+           $('button#shutdown').click(function(){
               $('#shutdownmodal').modal('show');
- 	            $.get("shutdown")
- 	            	.always(function(data){
- 	            		$('button#setupfirewall').text('Firewall Lab');
- 	            		$.getJSON('getnet', redrawAll);})
- 	            		$('#shutdownmodal').modal('hide')
-
-            });
+              $.get('/shutdown', function(data){
+ 	               $('#shutdownmodal').modal('hide');
+ 	            })
+ 	            	.done(function(data){
+ 	            		$('button#setupfirewall').text("Firewall Lab");
+ 	            		$('button#setuprouting').text("Routing Lab");
+ 	            		$.getJSON("getnet", redrawAll);
+ 	            	});
+ 	       });
         });
     </script>
     {% endblock %}

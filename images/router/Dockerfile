@@ -20,3 +20,4 @@ ADD sshd_config /etc/ssh/sshd_config
 #ADD supervisor_vrrpd.conf /etc/supervisor/conf.d/supervisor_vrrpd.conf
 RUN touch /home/cybertek/.XAuthority
 RUN rm -f /etc/supervisor/conf.d/supervisor_dhclient.conf
+#CMD sysctl -w net.ipv4.ip_forward=1
