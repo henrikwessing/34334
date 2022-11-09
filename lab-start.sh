@@ -11,4 +11,6 @@ then
 	rm ids.tar.gz
 fi 
 sudo apt-get install bridge-utils
+sudo apt install iperf
+sudo apt install iproute2
 sudo python lab_webapp.py

@@ -6,8 +6,7 @@
     {"name" : "host1"  , "image" : "34334:base"},
     {"name" : "host2"  , "image" : "34334:base"},
     {"name" : "host3"  , "image" : "34334:base"},
-    {"name" : "host4"  , "image" : "34334:base"},
-    {"name" : "host5"  , "image" : "34334:base"}
+    {"name" : "host4"  , "image" : "34334:base"}
                  
      ],
  "bridges" : [
@@ -17,8 +16,8 @@
     {"name" : "r13", "adjacencies" : ["router1;1", "router3;3"],
      "network" : "10.1.3.0"
     },
-    {"name" : "r14", "adjacencies" : ["router1;1", "router4;4", "host5"],
-     "network" : "10.1.4.0"
+    {"name" : "r14", "adjacencies" : ["router1;1", "router4;4"],
+     "network" : "10.1.4.0", "showswitch": "yes"
     },
     {"name" : "r24", "adjacencies" : ["router2;2", "router4;4"],
      "network" : "10.2.4.0"

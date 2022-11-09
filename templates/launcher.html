@@ -14,6 +14,8 @@
 				<br><br>
 				<button id="setuprouting" type="submit" class="btn btn-danger">Routing Lab</button>
 				<br><br>
+				<button id="setupQoS" type="submit" class="btn btn-danger">QoS Lab</button>
+				<br><br>
      		<button type="submit" id="shutdown" class="btn btn-danger">Luk Lab</button>
      	</div>
 	    <div id="mynetwork" class="col-sm-10 col-md-10 col-lg-10" style="background-color: #AAAAAA">
@@ -155,6 +157,20 @@
             });
         });
 
+        $(function() {
+           $('button#setupQoS').click(function(){
+            $('#setupmodal').modal('show');
+            $.get('/setupQoS',function(data){
+		        $('#setupmodal').modal('hide')             
+                })
+               	.always(function(data) {
+               	    $('#setupmodal').modal('hide') ;
+    		        $('button#setupQoS').text("Genstart QoS Lab");
+    		        $.getJSON("getnet", redrawAll);
+
+                });              
+            });
+        });
 
        $(function() {
            $('button#shutdown').click(function(){

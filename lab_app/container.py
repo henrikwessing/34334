@@ -174,10 +174,14 @@ class root_ns(object):
             nicname = container.name # + tmp_str
         if rnicname == '': 
             rnicname = self.name
+        base_mac = 'de:ad:be:ef:%2x:%2x'
+        nic_mac = base_mac % (random.randrange(1,255),random.randrange(1,255))
         r('ip link add $rnicname type veth peer name tmp')
         r('ip link set tmp netns $self.pid')
+        r('ip link set $rnicname address $nic_mac')
         r('ip link set $rnicname netns $pid')
         
+        #we are setting our special mac so dfgw doesn't get overwritten
         
         #this disables offloading....
         """if self.name != 'root':

@@ -25,14 +25,20 @@ def create_bridges(bridges):
         adj = bridge['adjacencies']
         adjcount = len(adj)
         bname = bridge['name']
-        if adjcount==2:
+        switch = False
+        try:
+            if bridge['showswitch']=="yes":
+                switch = True
+        except:
+            pass
+        if switch==False:
             rname = adj[0].split(";")[0]
             name = adj[1].split(";")[0]
  #           print("Connecting " +name + " to " + rname)
             nic = c(name).connect(c(rname),bname, bname)
             r('ip netns exec $name ip link set $bname up')
             r('ip netns exec $rname ip link set $bname up')
-        if adjcount > 2:
+        else:
             # Create switch
   #          print("Setting up bridge for 3 or more nodes")
             ns_root.register_ns(bname, '34334:switch','switch')
@@ -87,15 +93,18 @@ def set_addresses(bridges):
     # Setting addresses based on json. We assume /24 prefixes and use first available value for gateway unless specified
     print("Setting IP addresses")
     for bridge in bridges:
-        bridgename = bridge["name"]
-        (gw, gwip, adrtable) = recode_addresses(bridge)
-        for node in adrtable:
-            name = node["name"]
-            ip = node["ip"]
-            ip_prefix = ip + "/24"
-            r('ip netns exec $name ip addr add $ip_prefix dev $bridgename')
-            if (ip != gwip) and gw:
-                r('ip netns exec $name ip route add default via $gwip')
+        print(type(bridge))
+        if "network" in bridge:
+            bridgename = bridge["name"]
+            (gw, gwip, adrtable) = recode_addresses(bridge)
+            print("Linje 100")
+            for node in adrtable:
+                name = node["name"]
+                ip = node["ip"]
+                ip_prefix = ip + "/24"
+                r('ip netns exec $name ip addr add $ip_prefix dev $bridgename')
+                if (ip != gwip) and gw:
+                    r('ip netns exec $name ip route add default via $gwip')
 
 
 def set_internet(inetnode, interface, bridge, ip, gw):
@@ -129,9 +138,13 @@ def set_internet(inetnode, interface, bridge, ip, gw):
     r('iptables -A FORWARD -i $inet_nic -o $interface -j ACCEPT')
     r('docker exec -ti $inetnode sysctl -w net.ipv4.ip_forward=1')
     # Solving an issue with same MAC addresses. Not nice solution
-    r('ip netns exec snort ip link set internal address aa:14:c2:76:80:16')
-    r('ip netns exec server ip link set internal address aa:14:c2:76:80:17')
-    r('ip netns exec internet ip link set internal address aa:14:c2:76:80:18')
+    try:
+        r('ip netns exec server ip link set internal address aa:14:c2:76:80:17')
+        r('ip netns exec internet ip link set internal address aa:14:c2:76:80:18')
+        r('ip netns exec snort ip link set internal address aa:14:c2:76:80:16')
+    except:
+        print("Hopefully not relevant")
+    
             
                 
 def setup_firewall(h_if):
@@ -175,12 +188,7 @@ def setup_routing(h_if):
         # Connecting all dockers in bridges
         create_bridges(bridges)
         set_addresses(bridges)  
-        # Removing host6, which was constructed just to get the switch.
-        # Yes, hardcoding is not nice
-        ns_root.ns.remove(c("host5"))
- #       print("Nodes connected to r14")
- #       print(c("r14").nics)
-        c("r14").nics.remove("host5")
+
         # Enable IP forwarding in all routers - yes hardcoding :-(
         for i in range(4):
             k = str(i+1)
@@ -193,4 +201,42 @@ def setup_routing(h_if):
             r('docker exec -ti router%s mv /etc/quagga/ripd%s.conf /etc/quagga/ripd.conf' % (k,k))
             r('docker exec -ti router%s mv /etc/quagga/zebra%s.conf /etc/quagga/zebra.conf' % (k,k))
             r('docker exec -ti router%s service quagga start' % k)
-        
+
+
+def setup_QoS(h_if):
+    try:
+        ns_root.shutdown()
+    except:
+        print('[*] Did not shutdown cleanly, trying again')
+        docker_clean()
+    #finally:
+    #    docker_clean()
+        # Stop IP forwarding on Debian
+    r('sysctl -w net.ipv4.ip_forward=0')    
+    # Reading network setup
+    (nodes,bridges) = read_setup("QoS")
+    # Create containers
+    create_nodes(nodes)
+    create_bridges(bridges)
+    #Manually connect switches to internal bridges
+    r("ip netns exec sw1 brctl addif sw1 sw3")
+    r("ip netns exec sw2 brctl addif sw2 sw3")
+    
+    try:
+        r('ip netns exec client1 ip link set sw1 address aa:14:c2:76:80:17')
+        r('ip netns exec client2 ip link set sw1 address aa:14:c2:76:80:19')
+        r('ip netns exec server ip link set sw2 address aa:14:c2:76:80:16')
+        r('ip netns exec internet ip link set sw2 address aa:14:c2:76:80:22')
+    except:
+        print("Hopefully not relevant")
+
+
+    
+    set_addresses(bridges)  
+    set_internet('internet',h_if,'sw1','192.168.1.100/24','192.168.1.1')
+    # Set default gateway manually to client1 and client1
+    # Very ugly and hardcoded
+    r('ip netns exec client1 ip route add default via 192.168.1.1')
+    r('ip netns exec client2 ip route add default via 192.168.1.1')
+    r('docker exec -ti server service nginx start')
+

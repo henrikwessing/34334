@@ -229,7 +229,22 @@ def setuprouting():
         print(traceback.format_exc())
         return 'Fejl'
 
+@app.route('/setupQoS')
+def setupQoS():
+    print("Setting up routing environment")
+    """start the routing network"""
 
+    if len(NSROOT.ns) >= 1:
+        return 'Opdater Lab'
+
+    try:
+        lab.setup_QoS('eth0')
+        #time.sleep(3)
+        return 'Opdater Lab'
+
+    except:
+        print(traceback.format_exc())
+        return 'Fejl'
 
 
 
