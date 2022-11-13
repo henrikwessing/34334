@@ -13,4 +13,5 @@ fi
 sudo apt-get install bridge-utils
 sudo apt install iperf
 sudo apt install iproute2
+sudo apt install firefox-esr
 sudo python lab_webapp.py
