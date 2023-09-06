@@ -10,5 +10,4 @@ then
 	rm ids.tar
 	rm ids.tar.gz
 fi 
-sudo apt-get install bridge-utils
-sudo python lab_webapp.py
+#sudo python lab_webapp.py
