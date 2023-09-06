@@ -1,7 +1,7 @@
 #/bin/bash
 cd ~/34334
 
-if [ -z "$(sudo docker images 34334:ids -q)"] 
+if [ -z "$(sudo docker images 34334:ids -q)" ] 
 then 
 	tar -vxf ../snort/ids.tar.gz
 	sudo docker load -i ids.tar
