@@ -12,8 +12,8 @@ RUN sed -i -e 's/http:\/\/archive\.ubuntu\.com\/ubuntu\//http:\/\/mirrors\.dotsr
 RUN apt-get -y update && apt-get -y upgrade
 #RUN apt-get -y install wireshark tshark 
 RUN apt-get -y install bridge-utils ethtool
-RUN apt-get -y install nmap mtr traceroute python wget curl supervisor 
 RUN apt-get -y install python-pip python-dev smbclient
+RUN apt-get -y install nmap mtr traceroute python wget curl supervisor 
 RUN apt-get -y install iptables 
 
 #set root creds to w4sp:w4spbook and create cybertek user with same password
