@@ -1,7 +1,9 @@
 FROM 34334:base
 
 #install vrrpd, lldpd and quagga
-RUN apt-get install -y lldpd quagga openssh-server
+RUN apt-get install -y lldpd 
+RUN apt-get -y quagga
+RUN apt-get -y openssh-server
 RUN apt-get install -y geany nano mousepad
 
 
