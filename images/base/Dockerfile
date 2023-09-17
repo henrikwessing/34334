@@ -12,7 +12,7 @@ RUN sed -i -e 's/http:\/\/archive\.ubuntu\.com\/ubuntu\//http:\/\/mirrors\.dotsr
 RUN apt-get -y update && apt-get -y upgrade
 #RUN apt-get -y install wireshark tshark 
 RUN apt-get -y install bridge-utils ethtool
-RUN apt -y install python3 python
+RUN apt-get -y install python3
 RUN apt-get -y install nmap mtr traceroute wget curl supervisor 
 RUN apt-get -y install python-pip python-dev smbclient
 RUN apt-get -y install iptables 
