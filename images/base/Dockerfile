@@ -1,5 +1,4 @@
-#get the base default ubuntu 14.04 image
-FROM ubuntu:16.04
+FROM ubuntu:latest
 
 MAINTAINER 34334
 
