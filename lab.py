@@ -198,9 +198,9 @@ def setup_routing(h_if):
         # Select config file and start service in router 1 and 2
         for i in range(2):
             k=str(i+1)
-            r('docker exec -ti router%s mv /etc/quagga/ripd%s.conf /etc/quagga/ripd.conf' % (k,k))
-            r('docker exec -ti router%s mv /etc/quagga/zebra%s.conf /etc/quagga/zebra.conf' % (k,k))
-            r('docker exec -ti router%s service quagga start' % k)
+            r('docker exec -ti router%s mv /etc/frr/ripd%s.conf /etc/frr/ripd.conf' % (k,k))
+            r('docker exec -ti router%s mv /etc/frr/zebra%s.conf /etc/frr/zebra.conf' % (k,k))
+            r('docker exec -ti router%s service frr start' % k)
 
 
 def setup_QoS(h_if):
