@@ -9,10 +9,10 @@ RUN apt-get install -y geany nano mousepad
 
 #add the quagga scripts
 USER frr
-ADD daemons /etc/frr/daemons
-ADD ospfd.conf /etc/frr/ospfd.conf
-ADD zebra*.conf /etc/frr/
-ADD ripd*.conf /etc/frr/
+COPY daemons /etc/frr/daemons
+COPY ospfd.conf /etc/frr/ospfd.conf
+COPY zebra*.conf /etc/frr/
+COPY ripd*.conf /etc/frr/
 
 USER root
 ADD sshd_config /etc/ssh/sshd_config
