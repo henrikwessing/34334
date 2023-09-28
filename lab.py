@@ -200,6 +200,7 @@ def setup_routing(h_if):
             k=str(i+1)
             r('docker exec -ti router%s mv /etc/frr/ripd%s.conf /etc/frr/ripd.conf' % (k,k))
             r('docker exec -ti router%s mv /etc/frr/zebra%s.conf /etc/frr/zebra.conf' % (k,k))
+            r('docker exec -ti router%s mv /etc/frr/daemons34334 /etc/frr/daemons' % k)
             r('docker exec -ti router%s service frr start' % k)
 
 
