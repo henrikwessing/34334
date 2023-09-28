@@ -39,7 +39,7 @@ pathd=no
 #
 vtysh_enable=yes
 zebra_options="  -A 127.0.0.1 -s 90000000 --config_file /etc/frr/zebra.conf"
-bgpd_options="   -A 127.0.0.1 --config_file /etc/frr/ospfd.conf"
+bgpd_options="   -A 127.0.0.1 --config_file /etc/frr/bgpd.conf"
 ospfd_options="  -A 127.0.0.1 --config_file /etc/frr/ospfd.conf"
 ospf6d_options=" -A ::1"
 ripd_options="   -A 127.0.0.1 --config_file /etc/frr/ripd.conf"
