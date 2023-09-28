@@ -9,7 +9,7 @@ RUN apt-get install -y geany nano mousepad
 
 #add the quagga scripts
 USER frr
-COPY daemons /etc/frr/
+COPY daemons /etc/frr/daemons34334
 COPY ospfd.conf /etc/frr/ospfd.conf
 COPY zebra*.conf /etc/frr/
 COPY ripd*.conf /etc/frr/
