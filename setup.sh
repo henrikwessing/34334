@@ -1,5 +1,6 @@
 #/bin/bash
 cd ~/34334
+sudo apt-get install iperf
 
 if [ -z "$(sudo docker images 34334:ids -q)" ] 
 then 
