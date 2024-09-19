@@ -1,5 +1,5 @@
-FROM alpine:latest
-MAINTAINER 34334
+FROM alpine:3.20
+#MAINTAINER 34334
 #adding a label here so we can easily delete our containers
 LABEL 34334=true
 

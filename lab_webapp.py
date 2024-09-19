@@ -94,7 +94,7 @@ def buildlab():
 	
 	print("Building lab in own process")
 	time.sleep(3)
-	webbrowser.open('http://127.0.0.1:5000/building')   
+	#webbrowser.open('http://127.0.0.1:5000/building')   
 	#check dumpcap
 	lab.check_dumpcap()
   #see if we can run docker
