@@ -169,7 +169,7 @@ def setup_firewall(h_if):
         set_addresses(bridges)  
         # Connecting to internet via lab. Pretty much hardcoded          
         set_internet('internet',h_if,'internal','192.168.1.100/24','192.168.1.1')
-        r('docker exec -ti server service nginx start')
+        #r('docker exec -ti server rc-service nginx start')
 
 def setup_routing(h_if):
     try:
@@ -201,7 +201,7 @@ def setup_routing(h_if):
             r('docker exec -ti router%s mv /etc/frr/ripd%s.conf /etc/frr/ripd.conf' % (k,k))
             r('docker exec -ti router%s mv /etc/frr/zebra%s.conf /etc/frr/zebra.conf' % (k,k))
             #r('docker exec -ti router%s mv /etc/frr/daemons34334 /etc/frr/daemons' % k)
-            r('docker exec -ti router%s service frr start' % k)
+            r('docker exec -ti router%s rc-service frr start' % k)
 
 
 def setup_QoS(h_if):

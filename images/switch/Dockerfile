@@ -1,14 +1,15 @@
 #import from our base image
 FROM 34334:base
 
-RUN apt-get install -y dnsmasq software-properties-common
-
+#RUN apt-get install -y dnsmasq software-properties-common
+RUN apk update
+#RUN apk add --no-cache dnsmasq software-properties-common
 #add suricata and logstash repos
 
 #RUN add-apt-repository -y ppa:oisf/suricata-stable
 #RUN wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | apt-key add -
 #RUN echo "deb http://packages.elastic.co/logstash/2.0/debian stable main" | tee -a /etc/apt/sources.list
-RUN apt-get update
+#RUN apt-get update
 
 #install suricata and logstah
 #RUN apt-get install -y suricata logstash openjdk-7-jre-headless
@@ -17,8 +18,8 @@ RUN apt-get update
 #RUN touch /var/log/suricata/eve.json
 
 #install lldp
-RUN apt-get -y install lldpd
-
+#RUN apt-get -y install lldpd
+RUN apk add lldpd
 #add the startup script to add nics to the bridge automagically
 ADD start_sw.py /start_sw.py
 

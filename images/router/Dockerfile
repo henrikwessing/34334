@@ -1,25 +1,44 @@
 FROM 34334:base
+# Install necessary packages and FRR
+RUN apk add --no-cache frr frr-doc frr-pythontools
 
-#install vrrpd, lldpd and quagga
-RUN apt-get install -y lldpd 
-RUN apt-get install -y frr
-RUN apt-get install -y openssh-server
-RUN apt-get install -y geany nano mousepad
+# Create a directory for FRR configuration
+RUN mkdir -p /etc/frr
 
+EXPOSE 179 2601 2604
 
-#add the quagga scripts
-USER frr
 COPY daemons /etc/frr/daemons
 COPY ospfd.conf /etc/frr/ospfd.conf
 COPY zebra*.conf /etc/frr/
 COPY ripd*.conf /etc/frr/
 
-USER root
-ADD sshd_config /etc/ssh/sshd_config
+
+# Start FRR
+#CMD ["/usr/bin/supervisor"]
+CMD ["supervisord", "-c", "/etc/supervisor.conf"]
+
+
+#install vrrpd, lldpd and quagga
+#RUN apt-get install -y lldpd 
+#RUN apt-get install -y frr
+#RUN apt-get install -y openssh-server
+#RUN apt-get install -y geany nano mousepad
+#RUN apk add --no-cache lldpd frr openssh-server geany nano frr-pythontools
+
+#add the quagga scripts
+#USER frr
+#COPY daemons /etc/frr/daemons#
+#COPY ospfd.conf /etc/frr/ospfd.conf
+#COPY zebra*.conf /etc/frr/
+#COPY ripd*.conf /etc/frr/
+#USER root
+#RUN rc-update add frr default || echo "frr service not found"
+#ADD sshd_config /etc/ssh/sshd_config
 
 #add supervisord script and startup script and disable initial dhclient
 #ADD start_vrrpd.py /start_vrrpd.py
 #ADD supervisor_vrrpd.conf /etc/supervisor/conf.d/supervisor_vrrpd.conf
-RUN touch /home/cybertek/.XAuthority
-RUN rm -f /etc/supervisor/conf.d/supervisor_dhclient.conf
+#RUN touch /home/cybertek/.XAuthority
+#RUN rm -f /etc/supervisor/conf.d/supervisor_dhclient.conf
 #CMD sysctl -w net.ipv4.ip_forward=1
+#CMD ["rc-service", "frr", "start"]
