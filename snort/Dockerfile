@@ -38,7 +38,7 @@ RUN wget https://www.snort.org/downloads/snort/daq-${DAQ_VERSION}.tar.gz \
     && ./configure && make && make install
     
  
-ENV SNORT_VERSION=2.9.18.1
+ENV SNORT_VERSION=2.9.20
 RUN wget https://www.snort.org/downloads/snort/snort-${SNORT_VERSION}.tar.gz \
     && tar xvfz snort-${SNORT_VERSION}.tar.gz \
     && cd snort-${SNORT_VERSION} \
@@ -54,13 +54,10 @@ RUN mkdir /etc/snort \
                              /etc/snort/so_rules && \
     touch /etc/snort/rules/white_list.rules /etc/snort/rules/black_list.rules /etc/snort/rules/local.rules && \
     chmod -R 5775 /etc/snort && \
-    
     mkdir /var/log/snort && \
     chmod -R 5775 /var/log/snort && \
- 
     mkdir /usr/local/lib/snort_dynamicrules && \  
     chmod -R 5775 /usr/local/lib/snort_dynamicrules && \
-    
     cp /home/cybertek/snort_src/snort-${SNORT_VERSION}/etc/*.conf /etc/snort/etc && \
     cp -v /home/cybertek/snort_src/snort-${SNORT_VERSION}/etc/*.map* /etc/snort/etc
     
