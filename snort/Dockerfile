@@ -63,7 +63,10 @@ RUN mkdir /etc/snort \
     
  
 ENV SNORT_RULES_SNAPSHOT=29181
-ADD snortrules-snapshot-${SNORT_RULES_SNAPSHOT}.tar.gz /etc/snort
+RUN wget https://www.snort.org/downloads/community/community-rules.tar.gz
+#ADD snortrules-snapshot-${SNORT_RULES_SNAPSHOT}.tar.gz /etc/snort
+RUN tar -xvf community-rules.tar.gz -C .
+RUN cp community-rules/* /etc/snort/rules 
  
  
 WORKDIR /home/cybertek
