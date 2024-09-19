@@ -6,7 +6,7 @@ import fcntl
 import struct
 import time
 import os
-import gdown
+#import gdown
 from os import system as sys
 
 
