@@ -31,7 +31,7 @@ RUN mkdir /home/cybertek/snort_src
 WORKDIR /home/cybertek/snort_src
  
 # Install DAQ
-ENV DAQ_VERSION 2.0.7
+ENV DAQ_VERSION=2.0.7
 RUN wget https://www.snort.org/downloads/snort/daq-${DAQ_VERSION}.tar.gz \
     && tar xvfz daq-${DAQ_VERSION}.tar.gz \
     && cd daq-${DAQ_VERSION} \
