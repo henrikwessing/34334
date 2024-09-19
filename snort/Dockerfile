@@ -38,7 +38,7 @@ RUN wget https://www.snort.org/downloads/snort/daq-${DAQ_VERSION}.tar.gz \
     && ./configure && make && make install
     
  
-ENV SNORT_VERSION 2.9.18.1
+ENV SNORT_VERSION=2.9.18.1
 RUN wget https://www.snort.org/downloads/snort/snort-${SNORT_VERSION}.tar.gz \
     && tar xvfz snort-${SNORT_VERSION}.tar.gz \
     && cd snort-${SNORT_VERSION} \
@@ -65,7 +65,7 @@ RUN mkdir /etc/snort \
     cp -v /home/cybertek/snort_src/snort-${SNORT_VERSION}/etc/*.map* /etc/snort/etc
     
  
-ENV SNORT_RULES_SNAPSHOT 29181
+ENV SNORT_RULES_SNAPSHOT=29181
 ADD snortrules-snapshot-${SNORT_RULES_SNAPSHOT}.tar.gz /etc/snort
  
  
