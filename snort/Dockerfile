@@ -1,4 +1,4 @@
-FROM ubuntu:16.04 
+FROM debian:11
 # Install general prerequisites
 RUN apt-get update
 RUN apt-get -y upgrade
@@ -13,7 +13,8 @@ RUN apt-get -y install \
         zlib1g-dev \
         liblzma-dev \
         openssl \
-        libssl-dev
+        libssl-dev \
+	nano 
  
  
 # Install DAQ prerequisites
@@ -62,11 +63,10 @@ RUN mkdir /etc/snort \
     cp -v /home/cybertek/snort_src/snort-${SNORT_VERSION}/etc/*.map* /etc/snort/etc
     
  
-ENV SNORT_RULES_SNAPSHOT=29181
-RUN wget https://www.snort.org/downloads/community/community-rules.tar.gz
-#ADD snortrules-snapshot-${SNORT_RULES_SNAPSHOT}.tar.gz /etc/snort
-RUN tar -xvf community-rules.tar.gz -C .
-RUN cp community-rules/* /etc/snort/rules 
+ENV SNORT_RULES_SNAPSHOT=29200
+ADD snortrules-snapshot-${SNORT_RULES_SNAPSHOT}.tar.gz /etc/snort
+#RUN tar -xvf /etc/snort/snortrules-snapshot-${SNORT_RULES_SNAPSHOT}.tar.gz /etc/snort/
+#RUN cp community-rules/* /etc/snort/rules 
  
  
 WORKDIR /home/cybertek
@@ -74,3 +74,4 @@ WORKDIR /home/cybertek
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
     /home/cybertek/snort_src/*
+
