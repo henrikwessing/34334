@@ -201,7 +201,7 @@ def setup_routing(h_if):
             r('docker exec -ti router%s mv /etc/frr/ripd%s.conf /etc/frr/ripd.conf' % (k,k))
             r('docker exec -ti router%s mv /etc/frr/zebra%s.conf /etc/frr/zebra.conf' % (k,k))
             #r('docker exec -ti router%s mv /etc/frr/daemons34334 /etc/frr/daemons' % k)
-            r('docker exec -ti router%s rc-service frr start' % k)
+            r('docker exec -ti router%s supervisorctl start frr' % k)
 
 
 def setup_QoS(h_if):

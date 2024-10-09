@@ -1,21 +1,32 @@
 FROM 34334:base
 # Install necessary packages and FRR
-RUN apk add --no-cache frr frr-doc frr-pythontools
+RUN apk add --no-cache nano tini frr frr-doc frr-pythontools
 
 # Create a directory for FRR configuration
 RUN mkdir -p /etc/frr
+RUN mkdir -p /var/run/frr
+RUN chown -R frr:frr /etc/frr /var/run/frr
 
-EXPOSE 179 2601 2604
+
+#EXPOSE 179 2601 2604
 
 COPY daemons /etc/frr/daemons
 COPY ospfd.conf /etc/frr/ospfd.conf
 COPY zebra*.conf /etc/frr/
 COPY ripd*.conf /etc/frr/
 
+RUN chown -R frr:frr /etc/frr /var/run/frr
 
+
+ADD supervisor_router.conf /etc/supervisor/conf.d/routers.conf 
+#ENTRYPOINT ["/sbin/tini", "--"]
 # Start FRR
+COPY docker-start /usr/lib/frr/docker-start
+RUN chmod 755 /usr/lib/frr/docker-start
+#USER frr
 #CMD ["/usr/bin/supervisor"]
-CMD ["supervisord", "-c", "/etc/supervisor.conf"]
+CMD ["supervisord", "-c", "/etc/supervisor/supervisor.conf"]
+#CMD ["/usr/lib/frr/docker-start"]
 
 
 #install vrrpd, lldpd and quagga

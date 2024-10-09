@@ -26,11 +26,11 @@ VOLUME [ “/sys/fs/cgroup” ]
 RUN  mkdir -p /var/log/supervisor && mkdir -p /etc/supervisor/conf.d
 
 #supervisor base configuration
-ADD supervisor.conf /etc/supervisor.conf
+ADD supervisor.conf /etc/supervisor/supervisor.conf
 #add conf for dhclient
 ADD supervisor_dhclient.conf /etc/supervisor/conf.d/supervisor_dhclient.conf
 
 # default command
-CMD ["supervisord", "-c", "/etc/supervisor.conf"]
+CMD ["supervisord", "-c", "/etc/supervisor/supervisor.conf"]
 
 

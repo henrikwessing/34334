@@ -21,7 +21,7 @@ ADD index.html /var/www/html/index.html
 
 #add configs for supervisord
 #ADD supervisor_vics.conf /etc/supervisor/conf.d/supervisor_vics.conf
-CMD ["supervisord", "-c", "/etc/supervisor.conf"]
+CMD ["supervisord", "-c", "/etc/supervisor/supervisor.conf"]
 
 
 
