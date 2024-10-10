@@ -16,7 +16,7 @@ file2="/etc/docker/daemon.json"
 # Compare the files
 if ! cmp -s "$file1" "$file2"; then
     echo "Files are different. Copying $file1 to $file2 and restarting Docker service."
-    cp "$file1" "$file2"
+    sudo cp "$file1" "$file2"
     # Restart Docker service
     sudo systemctl restart docker
 else
