@@ -7,7 +7,7 @@ LABEL 34334=true
 #things that are nice to have on all images
 #RUN sed -i -e 's/http:\/\/archive\.ubuntu\.com\/ubuntu\//http:\/\/mirrors\.dotsrc\.org\/ubuntu/' /etc/apt/sources.list
 RUN apk update && apk upgrade
-RUN apk add --no-cache python3 nmap bash iptables supervisor shadow openssl openrc
+RUN apk add --no-cache python3 nmap bash iptables supervisor shadow openssl openrc iproute2
 RUN mkdir -p /run/openrc && touch /run/openrc/softlevel
 
 #set root creds create cybertek user with same password

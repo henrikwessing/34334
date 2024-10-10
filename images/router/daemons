@@ -38,11 +38,11 @@ pathd=no
 # Check /etc/pam.d/frr if you intend to use "vtysh"!
 #
 vtysh_enable=yes
-zebra_options="  -A 127.0.0.1 /etc/frr/zebra.conf"
-bgpd_options="   -A 127.0.0.1 /etc/frr/bgpd.conf"
-ospfd_options="  -A 127.0.0.1 /etc/frr/ospfd.conf"
+zebra_options="  -A 127.0.0.1 --config_file /etc/frr/zebra.conf"
+bgpd_options="   -A 127.0.0.1 --config_file /etc/frr/bgpd.conf"
+ospfd_options="  -A 127.0.0.1 --config_file /etc/frr/ospfd.conf"
 ospf6d_options=" -A ::1"
-ripd_options="   -A 127.0.0.1 /etc/frr/ripd.conf"
+ripd_options="   -A 127.0.0.1 --config_file /etc/frr/ripd.conf"
 ripngd_options=" -A ::1"
 isisd_options="  -A 127.0.0.1"
 pimd_options="   -A 127.0.0.1"
