@@ -59,18 +59,9 @@ def get_connections():
                     os = c(nic).pid
                     yield ns.pid, os
         done.append(ns.name)
-   #
-  # for os in lab.ns_root.ns:
-#                print("----  " + os.name)
-#                if os =! ns and nic in os.nics and nic not in tmp:
-#                    
-#                    print('%s connected %s' % (ns.pid,os.pid))
-#                    yield ns.pid,os.pid
-
 
 def psef(grep):
-    """this is python replacement for ps -ef, based off of
-        http://stackoverflow.com/questions/2703640/process-list-on-linux-via-python"""
+    """this is python replacement for ps -ef"""
 
     pids = [pid for pid in os.listdir('/proc') if pid.isdigit()]
 
@@ -94,8 +85,6 @@ def buildlab():
 	
 	print("Building lab in own process")
 	time.sleep(3)
-	#webbrowser.open('http://127.0.0.1:5000/building')   
-	#check dumpcap
 	lab.check_dumpcap()
   #see if we can run docker
 	try:
@@ -133,8 +122,8 @@ def launcher():
 
     for docker in NSROOT.ns:
         dockers.append(docker)
-    text = { 	'title': 'Lab øvelser i kursus 34334 Avancerede datanet og cybersikkerhed', 
-    		'text' : 'Denne side opretter øvelser som supplement til teorien i kursus 34334. De aktive knapper benyttes til at igangsætte en række simulerede netværk, som tager udgangspunkt i nogle Docker baserede øvelser.' }
+    text = { 	'title': 'P4 tutorial', 
+    		'text' : 'With this page you can setup relevant labs for playing with P4 and BMv2.' }
 
     return render_template('launcher.html', dockers=dockers, text=text)
 
