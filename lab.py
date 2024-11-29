@@ -147,7 +147,7 @@ def set_internet(inetnode, interface, bridge, ip, gw):
     
             
                 
-def setup_firewall(h_if):
+def setup_bmv2():
     try:
         ns_root.shutdown()
     except:
@@ -158,7 +158,7 @@ def setup_firewall(h_if):
         # Stop IP forwarding on Debian
         r('sysctl -w net.ipv4.ip_forward=0')    
         # Reading network setup
-        (nodes,bridges) = read_setup("firewall")
+        (nodes,bridges) = read_setup("bmv2")
         # Create containers
         print("Start nodes using docker containers")
         create_nodes(nodes)
@@ -168,7 +168,7 @@ def setup_firewall(h_if):
         print("Applying IP addressing scheme")
         set_addresses(bridges)  
         # Connecting to internet via lab. Pretty much hardcoded          
-        set_internet('internet',h_if,'internal','192.168.1.100/24','192.168.1.1')
+        #set_internet('internet',h_if,'internal','192.168.1.100/24','192.168.1.1')
         #r('docker exec -ti server rc-service nginx start')
 
 def setup_routing(h_if):

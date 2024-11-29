@@ -7,176 +7,83 @@
 </div>
 <div class="container-fluid">
 	<div class="row">
-		<div class="col-sm-2 col-md-2 col-lg-2">	
-			<button id="setupBmv2" type="submit" class="btn btn-danger">Establish P4 lab with BMv2</button><br><br>
-	     		<button type="submit" id="shutdown" class="btn btn-danger">Shutdown</button>
- 	    	</div>
+		<div id="buttonsDiv" class="col-sm-2 col-md-2 col-lg-2"></div>
 		 <div id="mynetwork" class="col-sm-10 col-md-10 col-lg-10" style="background-color: #AAAAAA"></div>
-    	</div>
+  </div>
  </div>
 <script>
+$(function() {
 	$.ajaxSetup({timeout:0});
-    var network;
-    var nodes = new vis.DataSet();
-    var edges = new vis.DataSet();
+  var network;
+  var nodes = new vis.DataSet();
+  var edges = new vis.DataSet();
+  $.getJSON('getnet', redrawAll);
+  // create a network
+  var container = document.getElementById('mynetwork');
+  var data = {
+    nodes: nodes,
+    edges: edges
+  };
+  var options = {
+    interaction: {hover:true},
+    nodes: {
+      shape: 'circle',
+      size: 30,
+      font: {
+        size: 17
+      },
+      borderWidth: 2,
+      shadow:true
+    },
+    edges: {
+      width: 2,
+      shadow:true
+    }
+  };
+  
+  var network = new vis.Network(container, data, options);
+ 
+  function redrawAll(data) {
+    console.log(data)
+    nodes.clear();
+    edges.clear();
+    nodes.add(data.nodes);
+    edges.add(data.edges);
+    var ids = nodes.getIds();
+    console.log(ids);
+    var items = nodes.get({
+      fields: ['label'],
+    });
+    network.fit();
+    $('#setupmodal').modal('hide');
+    $('#shutdownmodal').modal('hide');
+  };
 
-    $.getJSON('getnet', redrawAll);
-    // create a network
-    var container = document.getElementById('mynetwork');
-    var data = {
-        nodes: nodes,
-        edges: edges
-    };
+  const buttons = [
+    { id: 'setupbmv2', url: '/setupbmv2', modal: 'setupmodal', text1: 'Establish P4 BMv2 dataplane', text2: 'Shutdown BMv2' },
+    { id: 'shutdown', url: '/shutdown', modal: 'shutdownmodal', text1: 'Shutdown', text2: 'Shutdown' }
+  ];
 
-        var options = {
-        interaction: {hover:true},
-        nodes: {
-            shape: 'circle',
-            size: 30,
-            font: {
-                size: 17
-            },
-            borderWidth: 2,
-            shadow:true
-        },
-        edges: {
-            width: 2,
-            shadow:true
-        }
-    };
-
-
-    var network = new vis.Network(container, data, options);
-
-    network.on("doubleClick", function (params) {
-               $.ajax({
-                   type: "POST",
-                   url: "runshark",
-                   data: { "pid" : params["nodes"]}
-               });
-            });
-
-
-
-    function redrawAll(data) {
-
-        console.log(data)
-
-        nodes.clear();
-        edges.clear();
-
-        nodes.add(data.nodes);
-        edges.add(data.edges);
-
-        var is_mitm = false;
-        var is_vic2 = false;
-
-
-        var ids = nodes.getIds();
-        console.log(ids);
-
-        var items = nodes.get({
-            fields: ['label'],
-            });
-
-  /*      //go through to see what is running
-  //      console.log(items);
-        $.each(items, function(index, value) {
-            console.log(value.label);
-            if (value.label == "vic3") {
-                is_mitm = true;
-            } else if (value.label == "vic2") {
-                is_vic2 = true;
-            } else if (value.label == "elk") {
-                is_elk = true;
-            } else if (value.label == "wifi") {
-                is_wifi = true;
-            } else if (value.label == "sploit") {
-                is_sploit = true;
-            };
-
-        });*/
-
-
-  /*      console.log(is_ips);
-        {% for lab in ('vic2', 'mitm', 'ips', 'sploit', 'elk', 'wifi') %}
-            if (nodes.length > 2 && !({{ 'is_' ~ lab }})) {
-                $("{{'button#' ~ lab}}").prop('disabled', false);
-            } else {
-                $("{{'button#' ~ lab}}").prop('disabled', true);
-            };
-
-
-        {% endfor %}
-
-*/
-
-        network.fit();
-        $('#setupmodal').modal('hide');
-        $('#shutdownmodal').modal('hide');
-
-    	};
-
-
-       $(function() {
-           $('button#setupfirewall').click(function(){
-			$('#setupmodal').modal('show');
-            $.get('/setupfirewall', function(data) {
-                $('#setupmodal').modal('hide')
-            })
-            .always(function(data) {
-                $('button#setupfirewall').text("Genstart Firewall Lab");
-	            $.getJSON("getnet", redrawAll);
-	        })
-
-		  }); 
-     
+  function setupButtons(buttons) {
+    buttons.forEach(button => {
+      $('#buttonsDiv').append(`<button id="${button.id}" type="submit" class="btn btn-danger">${button.text1}</button><br><br>`);
+      $(`button#${button.id}`).click(function() {
+        $(`#${button.modal}`).modal('show');
+        $.get(button.url, function(data) {
+          $(`#${button.modal}`).modal('hide')
+        })
+        .done(function(data) {
+          $(`#${button.modal}`).modal('hide');
+          $(`button#${button.id}`).text(button.text2);
+          $.getJSON("getnet",redrawAll);
         });
-        
-        $(function() {
-           $('button#setuprouting').click(function(){
-            $('#setupmodal').modal('show');
-            $.get('/setuprouting',function(data){
-		        $('#setupmodal').modal('hide')             
-                })
-               	.done(function(data) {
-               	    $('#setupmodal').modal('hide') ;
-    		        $('button#setuprouting').text("Genstart Routing Lab");
-    		        $.getJSON("getnet", redrawAll);
-
-                });              
-            });
-        });
-
-        $(function() {
-           $('button#setupQoS').click(function(){
-            $('#setupmodal').modal('show');
-            $.get('/setupQoS',function(data){
-		        $('#setupmodal').modal('hide')             
-                })
-               	.always(function(data) {
-               	    $('#setupmodal').modal('hide') ;
-    		        $('button#setupQoS').text("Genstart QoS Lab");
-    		        $.getJSON("getnet", redrawAll);
-
-                });              
-            });
-        });
-
-       $(function() {
-           $('button#shutdown').click(function(){
-              $('#shutdownmodal').modal('show');
-              $.get('/shutdown', function(data){
- 	               $('#shutdownmodal').modal('hide');
- 	            })
- 	            	.done(function(data){
- 	            		$('button#setupfirewall').text("Firewall Lab");
- 	            		$('button#setuprouting').text("Routing Lab");
- 	            		$.getJSON("getnet", redrawAll);
- 	            	});
- 	       });
-        });
-    </script>
-    {% endblock %}
-  </body>
+      });
+    });
+  };
+  
+  setupButtons(buttons);
+});
+</script>
+{% endblock %}
+</body>
 </html>

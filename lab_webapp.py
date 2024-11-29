@@ -186,20 +186,18 @@ def getnet():
     return jsonify(**data)
 
 
-@app.route('/setupfirewall')
-def setupfw():
-    print("Setting up firewall environment")
-    """start the firewall network"""
+@app.route('/setupbmv2')
+def setup_bmv2():
     if len(NSROOT.ns) >= 1:
-        return 'Opdater Lab'
+        return 'Update Lab'
     try:
-        lab.setup_firewall('eth0')
+        lab.setup_bmv2()
         time.sleep(3)
-        return 'Opdater Lab'
+        return 'Update Lab'
 
     except:
         print(traceback.format_exc())
-        return 'Fejl'
+        return 'Error'
 
 @app.route('/setuprouting')
 def setuprouting():
