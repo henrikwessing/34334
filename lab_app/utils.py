@@ -6,13 +6,9 @@ import fcntl
 import struct
 import time
 import os
-#import gdown
 from os import system as sys
 
-
 def check_dumpcap():
-    """function to ensure that dumpcap has the right capabilities set"""
-
     dumpcap = r('which dumpcap').strip()
     caps = r('getcap $dumpcap')
 
@@ -35,10 +31,8 @@ def check_dumpcap():
 
 
 
-
 def get_base_subnet(ip):
     """convenience function to get a /24 subnet base"""
-
     return '.'.join(ip.split('.')[:-1])
 
 
@@ -97,7 +91,7 @@ def docker_build(image_path):
 	sys('systemctl restart docker')
 	sys('docker build -t 34334:base base')
 	# snort image is assumed build with tag 34334:ids
-	for image in ('inet','router','victims','switch'):
+	for image in ('inet','router','victims','switch','bmv2'):
 		image_name = '34334:' + image
 		r('docker build -t $image_name $image')
 	#go back to the working dir

@@ -107,10 +107,24 @@ class root_ns(object):
         ##########################################
         self.exit_ns()
       
+    def get_nic_info(self):
+      self.enter_ns()
+      for interface in netifaces.interfaces():
+        info = {}
+        if interface != 'lo':
+          nic = netifaces.ifaddresses(interface)
+          mac = nic[netifaces.AF_LINK][0]['addr']
+          ip = ''
+          if netifaces.AF_INET in nic.keys():
+            ip = nic[netifaces.AF_INET][0]['addr']
+          info[interface]=(mac,ip)
+          yield info
+      self.exit_ns()
 
 
     def get_ips(self):
         """returns the ip addresses for all of the interfaces"""
+        #self.get_nic_info()
 
         self.enter_ns()
         #################################################
@@ -121,7 +135,7 @@ class root_ns(object):
             if interface != 'lo':
                 nic = netifaces.ifaddresses(interface)
                 if netifaces.AF_INET in nic.keys():
-                    ips[interface] = nic[netifaces.AF_INET][0]['addr']
+                    ips[interface] = nic[netifaces.AF_INET][0]['addr'] 
                     yield ips
                     
         #################################################
@@ -159,7 +173,6 @@ class root_ns(object):
     #    print("Connecting " + self.name + " (self) to " + container.name + " (remote)")
         #creating a local var for the r() call
         pid = container.pid
-
         #count up our nics for naming scheme of container name + _number
         tmp_n = 0;tmp_str='0'
      #   print("Nics in container " + container.name)

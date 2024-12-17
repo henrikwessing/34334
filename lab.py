@@ -8,18 +8,21 @@ from random import randrange
 
 def read_setup(setup):
     f = open('networks/'+setup+'.json')
+    print(f)
     try:
         data = json.load(f)
+        print(data)
         return (data.get("nodes"),data.get("bridges"))
     except:
         print("Badly formatted configuration file")
+        return None
 
 def create_nodes(nodes):
     for node in nodes:
         if not c(node['name']):
             ns_root.register_ns(node['name'],node['image'])
             
-def create_bridges(bridges):  
+def create_bridges(bridges, nodes=[],p4=False):  
     for bridge in bridges:
         # If 2 adjacencies it is basically a link
         adj = bridge['adjacencies']
@@ -41,16 +44,22 @@ def create_bridges(bridges):
         else:
             # Create switch
   #          print("Setting up bridge for 3 or more nodes")
-            ns_root.register_ns(bname, '34334:switch','switch')
-            c(bname).enter_ns()
-            # Adding bridge in ns
-            r('brctl addbr $bname')
-            # or r('ip link add name $bname type bridge')
-            r('ip link set $bname up')
-            r('brctl stp $bname off')
-            r('brctl setageing $bname 0')
-            r('brctl setfd $bname 0')
-            c(bname).exit_ns()
+            # Check if bridge already defined:
+            exists = False
+            for node in nodes:
+              if node['name']==bname:
+                exists=True
+            if not exists:
+              ns_root.register_ns(bname, '34334:switch','switch')
+            if not p4:
+              c(bname).enter_ns()
+              r('brctl addbr $bname')
+              # or r('ip link add name $bname type bridge')
+              r('ip link set $bname up')
+              r('brctl stp $bname off')
+              r('brctl setageing $bname 0')
+              r('brctl setfd $bname 0')
+              c(bname).exit_ns()
             for node in adj:
                 name=node.split(";")[0]
    #             print("Connecting "+bname+" to "+name)
@@ -63,7 +72,8 @@ def create_bridges(bridges):
                     print(nic)
                 r('ip netns exec $bname ip link set $name up')
                 r('ip netns exec $name ip link set $bname up') 
-                r('ip netns exec $bname brctl addif $bname $name')
+                if not p4:
+                  r('ip netns exec $bname brctl addif $bname $name')
                 
 def ip_address(iprange,host):
     prefix = '.'.join(iprange.split('.')[0:3])
@@ -97,7 +107,6 @@ def set_addresses(bridges):
         if "network" in bridge:
             bridgename = bridge["name"]
             (gw, gwip, adrtable) = recode_addresses(bridge)
-            print("Linje 100")
             for node in adrtable:
                 name = node["name"]
                 ip = node["ip"]
@@ -147,26 +156,35 @@ def set_internet(inetnode, interface, bridge, ip, gw):
     
             
                 
-def setup_bmv2():
+def setup_bmv2(setup):
     try:
         ns_root.shutdown()
     except:
         print('[*] Did not shutdown cleanly, trying again')
         docker_clean()
     finally:
+        print("Establishing network" + str(setup))
         docker_clean()
         # Stop IP forwarding on Debian
         r('sysctl -w net.ipv4.ip_forward=0')    
         # Reading network setup
-        (nodes,bridges) = read_setup("bmv2")
+        (nodes,bridges) = read_setup(setup)
         # Create containers
         print("Start nodes using docker containers")
         create_nodes(nodes)
         # Connecting all dockers in bridges
         print("Interconnect nodes")
-        create_bridges(bridges)
+        create_bridges(bridges, nodes=nodes,p4=True)
         print("Applying IP addressing scheme")
-        set_addresses(bridges)  
+        set_addresses(bridges)
+        if setup == "l2-reflector":
+          r('docker exec -ti BMv2 p4c --target bmv2 --arch v1model --std p4-16 l2-reflector.p4')
+          r('docker exec -ti BMv2 sysctl net.ipv4.icmp_echo_ignore_all=1')
+        if setup == "l2-forwarding":
+          r('docker exec -ti BMv2 p4c --target bmv2 --arch v1model --std p4-16 l2-forwarding.p4')
+          r('docker exec -ti BMv2 sysctl net.ipv4.icmp_echo_ignore_all=1')
+        
+  
         # Connecting to internet via lab. Pretty much hardcoded          
         #set_internet('internet',h_if,'internal','192.168.1.100/24','192.168.1.1')
         #r('docker exec -ti server rc-service nginx start')

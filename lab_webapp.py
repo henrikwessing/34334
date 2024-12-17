@@ -41,6 +41,8 @@ except:
 # create the application object
 app = Flask(__name__)
 app.config.from_object(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
 
 
 def get_connections():
@@ -51,7 +53,7 @@ def get_connections():
     for ns in lab.ns_root.ns:
   #      print(ns.name + "  " + ns.pid)
         for nic in ns.nics:    
-   #         print("-- " + nic)
+            print("------ " + nic)
             if 'root' in nic:
                 yield 1,ns.pid
             else:
@@ -123,7 +125,7 @@ def launcher():
     for docker in NSROOT.ns:
         dockers.append(docker)
     text = { 	'title': 'P4 tutorial', 
-    		'text' : 'With this page you can setup relevant labs for playing with P4 and BMv2.' }
+    		'text' : 'Establish networks using buttons to the left' }
 
     return render_template('launcher.html', dockers=dockers, text=text)
 
@@ -152,9 +154,11 @@ def getnet():
         
         
         tmp_popup = ''
-        for ips in ns.get_ips():
+        for nics in ns.get_nic_info():
+            print(nics)
+            interface, (mac, ip) = nics.popitem()
             # { 'nic' : ip }
-            tmp_popup += '%s : %s \n' % ips.popitem()
+            tmp_popup += f"{interface} : {ip} ({mac}) \n"
 
 
 
@@ -186,18 +190,35 @@ def getnet():
     return jsonify(**data)
 
 
-@app.route('/setupbmv2')
-def setup_bmv2():
+@app.route('/setup_p4_1')
+def setup_p4_1():
     if len(NSROOT.ns) >= 1:
         return 'Update Lab'
     try:
-        lab.setup_bmv2()
+        lab.setup_bmv2("l2-reflector")
         time.sleep(3)
         return 'Update Lab'
 
     except:
         print(traceback.format_exc())
         return 'Error'
+
+@app.route('/setup_p4_2')
+def setup_p4_2():
+    if len(NSROOT.ns) >= 1:
+        return 'Update Lab'
+    try:
+        lab.setup_bmv2("l2-forwarding")
+        time.sleep(3)
+        return 'Update Lab'
+
+    except:
+        print(traceback.format_exc())
+        return 'Error'
+
+
+
+
 
 @app.route('/setuprouting')
 def setuprouting():
