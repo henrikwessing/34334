@@ -43,35 +43,18 @@ control MyVerifyChecksum(inout headers hdr, inout metadata meta) {
 }
 
 // Ingress processing
-// This is where the current changes are 
 
 control MyIngress(inout headers hdr, inout metadata meta, inout standard_metadata_t standard_metadata) {
-  action drop() {
-    mark_to_drop(standard_metadata);
+  action reverse_mac() {
+    t_macAddr temp;
+    temp = hdr.ethernet.srcAddr;
+    hdr.ethernet.srcAddr = hdr.ethernet.dstAddr;
+    hdr.ethernet.dstAddr = temp;
   }
-
-  action forward(bit<9> outgoing_port) {
-    standard_metadata.egress_spec = outgoing_port;
-  }
-
-  action broadcast() {
-	standard_metadata.mcast_grp = 0;
-  }
-
-
-  table mac {
-    key = {
-      hdr.ethernet.dstAddr: exact;
-    }
-
-    actions = {forward; drop;broadcast;}
-    size = 16;
-    default_action = drop;
-  }
-  
   apply {
-    mac.apply();
-  }	
+    reverse_mac();
+    standard_metadata.egress_spec = standard_metadata.ingress_port;
+  }
 }
 
 // Egress processing

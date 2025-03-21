@@ -2,7 +2,7 @@
 {% block content %}
 <div class="container">
 	<div class="row" style="text-white">
-		<p>{{text.text}}</p>
+		<p class="subtitle">{{text.text}}</p>
 	</div>
 </div>
 <div class="container-fluid">
@@ -62,6 +62,8 @@ $(function() {
   const buttons = [
     { id: 'p4_1', url: '/setup_p4_1', modal: 'setupmodal', text1: 'Ethernet Reflector Lab', text2: 'Restart lab' },
     { id: 'p4_2', url: '/setup_p4_2', modal: 'setupmodal', text1: 'L2 forwarding Lab', text2: 'Restart lab' },
+    { id: 'p4_3', url: '/setup_p4_3', modal: 'setupmodal', text1: 'Statistics collection', text2: 'Restart lab' },
+    { id: 'p4_4', url: '/setup_p4_4', modal: 'setupmodal', text1: 'FreeRtr on RARE', text2: 'Restart lab' },
     { id: 'shutdown', url: '/shutdown', modal: 'shutdownmodal', text1: 'Shutdown', text2: 'Shutdown' }
   ];
 
