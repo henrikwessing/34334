@@ -2,6 +2,7 @@ from lab_app import *
 import errno
 import json
 from multiprocessing import Process
+import os
 
 from random import randrange
 
@@ -12,7 +13,7 @@ def read_setup(setup):
     try:
         data = json.load(f)
         print(data)
-        return (data.get("nodes"),data.get("bridges"))
+        return (data.get("nodes", None),data.get("bridges",None),data.get("files",None))
     except:
         print("Badly formatted configuration file")
         return None
@@ -153,7 +154,19 @@ def set_internet(inetnode, interface, bridge, ip, gw):
         r('ip netns exec snort ip link set internal address aa:14:c2:76:80:16')
     except:
         print("Hopefully not relevant")
-    
+
+def copy_files(files):
+  print("Copying files to containers")
+  print(files)
+  path = 'files/'
+  cur_folder = os.getcwd()
+  print(f"Current folder {cur_folder}")
+  for item in files:
+    copystring = f"docker cp {path}{item.get('src')} {item.get('name')}:{item.get('dst')}"
+    print(copystring)
+    r(copystring)
+
+  
             
                 
 def setup_bmv2(setup):
@@ -163,12 +176,12 @@ def setup_bmv2(setup):
         print('[*] Did not shutdown cleanly, trying again')
         docker_clean()
     finally:
-        print("Establishing network" + str(setup))
+        print("Establishing network " + str(setup))
         docker_clean()
         # Stop IP forwarding on Debian
         r('sysctl -w net.ipv4.ip_forward=0')    
         # Reading network setup
-        (nodes,bridges) = read_setup(setup)
+        (nodes,bridges, files) = read_setup(setup)
         # Create containers
         print("Start nodes using docker containers")
         create_nodes(nodes)
@@ -177,6 +190,8 @@ def setup_bmv2(setup):
         create_bridges(bridges, nodes=nodes,p4=True)
         print("Applying IP addressing scheme")
         set_addresses(bridges)
+        print("Copying files and folders")
+        copy_files(files)
         if setup == "l2-reflector":
           r('docker exec -ti BMv2 p4c --target bmv2 --arch v1model --std p4-16 l2-reflector.p4')
           r('docker exec -ti BMv2 sysctl net.ipv4.icmp_echo_ignore_all=1')
