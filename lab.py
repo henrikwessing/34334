@@ -192,7 +192,7 @@ def setup_routing(h_if):
         # Enable IP forwarding in all routers - yes hardcoding :-(
         for i in range(4):
             k = str(i+1)
-            r('docker exec -ti router%s sysctl -w net.ipv4.ip_forward=1' % k)
+            r('docker exec -ti router%s sysctl -w net.ipv4.ip_forward=1"' % k)
     
            
         # Select config file and start service in router 1 and 2
