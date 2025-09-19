@@ -1,6 +1,6 @@
 #/bin/bash
 cd ~/34334
-sudo apt-get install iperf
+sudo apt-get -y install python-is-python3 iperf
 
 if [ -z "$(sudo docker images 34334:ids -q)" ] 
 then 
