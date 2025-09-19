@@ -1,6 +1,6 @@
 #/bin/bash
 cd ~/34334
-sudo apt-get -y install python-is-python3 ethtool bridge-utils iperf
+sudo apt-get -y install python-is-python3 ethtool bridge-utils dhcp-client iperf
 ip link show enp0s8 >/dev/null 2>&1 && sudo ip link set enp0s8 down && sudo ip link set enp0s8 name eth0 && sudo ip link set eth0 up
 
 if [ -z "$(sudo docker images 34334:ids -q)" ] 
