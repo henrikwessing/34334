@@ -1,6 +1,6 @@
 #/bin/bash
 cd ~/34334
-sudo apt-get -y install python-is-python3 iperf
+sudo apt-get -y install python-is-python3 bridge-utils iperf
 
 if [ -z "$(sudo docker images 34334:ids -q)" ] 
 then 
