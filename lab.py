@@ -189,12 +189,6 @@ def setup_routing(h_if):
         create_bridges(bridges)
         set_addresses(bridges)  
 
-        # Enable IP forwarding in all routers - yes hardcoding :-(
-        for i in range(4):
-            k = str(i+1)
-            r('docker exec -ti router%s sysctl -w net.ipv4.ip_forward=1"' % k)
-    
-           
         # Select config file and start service in router 1 and 2
         for i in range(2):
             k=str(i+1)
@@ -203,6 +197,7 @@ def setup_routing(h_if):
             #r('docker exec -ti router%s mv /etc/frr/daemons34334 /etc/frr/daemons' % k)
             #r('docker exec -ti router%s supervisorctl start frr' % k)
             r('docker exec -ti router%s service frr start' % k)
+
             
 
 

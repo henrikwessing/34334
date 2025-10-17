@@ -274,7 +274,7 @@ class container(root_ns):
         #start the container and record the container id sleeping randomly to try and improve performance at start
         #time.sleep(random.uniform(1,3))
   #      print("----DOCKER COMMAND----")
-        cmd = 'docker run -id --privileged --name $name --hostname $name --net=none --ulimit nofile=100000:100000 $image'
+        cmd = 'docker run -id --privileged --name $name --hostname $name --net=none --sysctl net.ipv4.ip_forward=1 --ulimit nofile=100000:100000 $image'
         print(cmd)
         self.id = r(cmd).strip()
         self.pid = r("docker inspect -f '{{.State.Pid}}' $self.id").strip().strip(b"'")
