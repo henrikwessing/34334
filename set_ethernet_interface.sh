@@ -30,7 +30,7 @@ if grep -q 'net.ifnames=0' "$GRUB_FILE"; then
     echo "Ethernet interface configuration has already been changed."
     echo "Please reboot the VM to activate eth0."
     echo
-    exit 0
+    exit 10
 fi
 
 echo
@@ -53,3 +53,4 @@ echo "IMPORTANT: Reboot the VM before continuing:"
 echo
 echo "    sudo reboot"
 echo
+exit 10

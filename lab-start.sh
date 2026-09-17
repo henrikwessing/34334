@@ -1,16 +1,26 @@
 #/bin/bash
 #cd ~/34334
 
-echo "Checking if sudo is used"
+#echo "Checking if sudo is used"
 # Must run as root
-if [ "$EUID" -ne 0 ]; then
-    echo "Please run this script with sudo:"
-    echo "  sudo $0"
-    exit 1
-fi
+#if [ "$EUID" -ne 0 ]; then
+#    echo "Please run this script with sudo:"
+#    echo "  sudo $0"
+#    exit 1
+#fi
 
 echo "Checking and configuring ethernet interfaces"
-./set_ethernet_interface.sh
+sudo ./set_ethernet_interface.sh
+RESULT=$?
+
+
+if [ "$RESULT" -eq 10 ]; then
+    echo
+    echo "Lab setup cannot continue until the VM has been rebooted."
+    echo "Type sudo reboot"
+    exit 0
+fi
+
 
 echo "Initial additional packages installed"
 sudo apt-get update
