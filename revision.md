@@ -6,4 +6,6 @@
 - Docker image for router updated from Debian Bullseye to Bookworm
 - Tested that all labs can start
 
+#E2026 v26.01
+- Installation script changed to exit if reboot needed
 
