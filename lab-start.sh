@@ -1,8 +1,23 @@
 #/bin/bash
-cd ~/34334
-sudo apt-get -y install python-is-python3 ethtool bridge-utils isc-dhcp-client iperf
-ip link show enp0s8 >/dev/null 2>&1 && sudo ip link set enp0s8 down && sudo ip link set enp0s8 name eth0 && sudo ip link set eth0 up
+#cd ~/34334
 
+echo "Checking if sudo is used"
+# Must run as root
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run this script with sudo:"
+    echo "  sudo $0"
+    exit 1
+fi
+
+echo "Checking and configuring ethernet interfaces"
+./set_ethernet_interface.sh
+
+echo "Initial additional packages installed"
+sudo apt-get update
+sudo apt-get -y install python-is-python3 ethtool bridge-utils isc-dhcp-client iperf wget python3-flask
+
+
+echo "Checking if docker SNORT images installed and otherwise download and install for relevant architecture"
 if [ -z "$(sudo docker images 34334:ids -q)" ] 
 then 
 	wget https://files.cyberteknologi.dk/ids-$(uname -m).tar.gz -O ids.tar.gz
@@ -15,6 +30,7 @@ file1="./daemon.json"
 file2="/etc/docker/daemon.json"
 
 # Compare the files
+echo "Restarting docker service"
 if ! cmp -s "$file1" "$file2"; then
     echo "Files are different. Copying $file1 to $file2 and restarting Docker service."
     sudo cp "$file1" "$file2"
@@ -23,4 +39,6 @@ if ! cmp -s "$file1" "$file2"; then
 else
     echo "Docker build ok as is - No action needed"
 fi
+
+echo "Initialisation phase 1 complete"
 sudo python lab_webapp.py
