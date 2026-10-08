@@ -24,7 +24,7 @@ fi
 
 echo "Initial additional packages installed"
 sudo apt-get update
-sudo apt-get -y install python-is-python3 ethtool bridge-utils isc-dhcp-client iperf wget python3-flask
+sudo apt-get -y install python-is-python3 ethtool bridge-utils isc-dhcp-client iperf wget python3-flask traceroute
 
 
 echo "Checking if docker SNORT images installed and otherwise download and install for relevant architecture"
